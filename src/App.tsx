@@ -386,14 +386,7 @@ export default function App() {
     });
   }, [history]);
 
-  const removeTurkishDiacritics = (value: string) =>
-    value
-      .replace(/[çÇ]/g, 'c')
-      .replace(/[ğĞ]/g, 'g')
-      .replace(/[ıİ]/g, 'i')
-      .replace(/[öÖ]/g, 'o')
-      .replace(/[şŞ]/g, 's')
-      .replace(/[üÜ]/g, 'u');
+  const removeTurkishDiacritics = (value: string) => value;
 
   const generateNewText = useCallback((forSeconds?: number) => {
     let text: string;
