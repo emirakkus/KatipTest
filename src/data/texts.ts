@@ -221,15 +221,16 @@ dil kişinin duygularını açıklamasını diğer kişilerle yakınlaşıp bağ
 
 genellikle konuşurken kullandığımız dil bir mektubun üslubu olmalıdır bir yazının okuyucunun dikkatini dağıtacak ya da normal okuyuş şeklini değiştirmeye zorlayacak söz ve deyimlerden ve anlatımdan da kaçınılmalıdır biliyoruz ki iş yaşamında yazıyla açıklanan fikirlerin çoğunluğu sadedir basittir işte bu durum saklanmak istenir okuyanın bizim de basit olduğumuza hükmedeceği sanılır
 
-mesela şimdi bahar geldi artık tatil için plan yapmanın zamanıdır diyeceğimize güzel bir tatil geçirmek arzunuzun gerçekleşmesine yardımcı olacağını sandığımız kampımızın özelliklerini aşağıda bilgilerinize sunarız demek daha etkili olur
+mesela şimdi bahar geldi artık tatil için plan yapmanın zamanıdır diyeceğimize güzel bir tatil geçirmek arzunuzun gerçekleşmesine yardımcı olacağını sandığımız kampımızın özelliklerini aşağıda bilgilerinize sunarız demek daha etkilidir
 
-kaderciliğin hakim olduğu en hayati olaylarla din buyruklarının içiçe bulunduğu ve tenkitçi düşünceye de yer vermeyen bir medeniyetten uzaklaşılmıştır bunun yerine din ile devlet işlerinin birbirinden ayrıldığı hür ve ilmi düşünme imkanlarının bulunduğu tenkitçi düşünceyle yeniliklere sürekli açık olan bir medeniyete geçilmiştir türk milleti ülkesinin yüksek bağımsızlığını korunmasını bildiği gibi dilini de yabancı diller boyunduruğundan kurtararak medeni dünyadaki yerini almıştır
+kaderciliğin hâkim olduğu en hayati olaylarla din buyruklarının iç içe bulunduğu ve tenkitçi düşünceye de yer vermeyen bir medeniyetten uzaklaşılmıştır bunun yerine din ile devlet işlerinin birbirinden ayrıldığı hür ve ilmi düşünme imkânlarının bulunduğu tenkitçi düşünceyle yeniliklere sürekli açık olan bir medeniyete geçilmiştir türk milleti ülkesinin yüksek bağımsızlığını korunmasını bildiği gibi dilini de yabancı diller boyunduruğundan kurtararak medeni dünyadaki yerini almıştır
 
-fikirlerimizin derin kıymetli ve önemli olduğunu ispatlamak için abartılmış ağdalı fazla teknik kelime ve deyimlerin kullanılması yersizdir ilk bakışta doğru gözüken fakat dikkat edildiğinde gerekli olmadığı anlaşılan güneş doğudan doğar gibi sözler ve fikirler yazılmamalıdır abartılmış dil kullanmak kendimize ve okuyanlara karşı içten olmayı gerektirir
+fikirlerimizin derin kıymetli ve önemli olduğunu ispatlamak için abartılmış ağdalı fazla teknik kelime ve deyimlerin kullanılması yersizdir
 
-açıklamaların bulunduğu kısımda ise aktif etken cümleler kullanmak pasif edilgen cümle kullanmaktan daha etkilidir örneğin satışlar hakkındaki özel raporunuz alınmıştır diyecek yerde satışlar hakkındaki özel raporunuzu aldık demek daha etkilidir edilgen cümleler şu hallerde kullanılır monotonluğa düşmenin önlenmesi yazarın işi yapanı bilmemesi işi yapanın önemli olmaması işi yapanın açıklanmak istenmemesi
+açıklamaların bulunduğu kısımda ise aktif etken cümleler kullanmak edilgen cümle kullanmaktan daha etkilidir
 
-milletimiz dil bütünlüğünü sağlayamamış olsaydı cumhuriyetimizin sürekliliği de tehlikeye düşebilirdi dilin milli ve zengin olması milli duygunun gelişmesinde başlıca etkendir türk dili dillerin en gelişmişlerinden ve en zenginlerindendir artık konuşurken ve yazarken kullandığımız dil ortaktır bu ortaklık her an her yerde ve her şekilde anlaşabilmemizi ve okuyup yazmada güçlük çekmememizi de sağlamıştır dilimiz gelişmiştir ve gelişecektir`;
+örneğin satışlar hakkındaki özel raporunuz alınmıştır yerine satışlar hakkındaki özel raporunuzu aldık demek daha etkilidir
+`;
 
 export const TEXTS_EASY = [
   'bu dava ile ilgili karar verildi mahkeme sonucu olumlu oldu dosya ile ilgili durum iyi gidiyor',
@@ -244,8 +245,8 @@ export const TEXTS_EASY = [
   'iş mahkemesi davayı inceledi kıdem ile ilgili hesap yapıldı karar verildi işçi haklı bulundu',
   'dosya numarası ile kayıt yapıldı belge sisteme girildi ve duruşma günü taraflara bildirildi',
   'mahkeme başkanı duruşmayı açtı taraflar hazır oldu tutanak tutulmaya başlandı ve ifadeler alındı',
-  'dava dilekçesi hazırlandı mahkemeye sunuldu harç yatırıldı ve dava numarası alındı işlem tamam oldu',
-  'tanık ifadesi alındı kayıt altına girildi tutanak yazıldı ve dosyaya eklendi süreç ilerledi',
+  'dava dilekçesi hazırlandı mahkemeye sunuldu harç yatırıldı ve dava numarası alındı işlem tamamlandı',
+  'tanık ifadesi alındı kayıt altına alındı tutanak yazıldı ve dosyaya eklendi süreç ilerledi',
   'bilirkişi raporu geldi dosyaya konuldu taraflara tebliğ edildi ve itiraz süresi başladı',
   'duruşma saati geldi hakim salona girdi taraflar ayağa kalktı ve duruşma düzeni sağlandı',
   'karar yazıldı taraflara okundu itiraz hakkı verildi ve duruşma sona erdi dosya kapandı',
@@ -315,72 +316,7 @@ export const TEXTS_EASY = [
   'esas hakkında mütalaa verildi savcı ceza talebini açıkladı ve son savunma hakkı hatırlatıldı',
   'hükmün açıklanmasının geri bırakılması kararı verildi sanık denetim süresine tabi tutuldu',
   'muvafakatname imzalandı taraflar anlaşmaya vardı ve sözleşme noter huzurunda onaylandı',
-  'kesinleşme şerhi düşüldü karar icraya konulabilir hale geldi ve dosya infaz birimine gönderildi',
-  'eski zamanlarda bir padişah sarayının yoluna büyük bir taş koydurmuş kendisi de pencereye oturup kimin o taşı yoldan çekeceğini izlemeye başlamış ülkenin en zengin tüccarları en güçlü kervancıları saray görevlileri birer birer gelmişler hepsi de taşı etrafından dolaşarak saraya girmişler hatta pek çoğu padişahı yolları temiz tutmadığı için yüksek sesle eleştirmiş sonunda bir köylü çıkagelmiş sırtında taşıdığı küfeyi yere indirmiş ve büyük taşa sarılarak onu yoldan çekmeye çalışmış kan ter içinde kalarak taşı yolun kenarına itmeyi başarmış taşın eski yerinde bir kese altın ve padişahın yazdığı bir not bulmuş notta bu altınların taşı yoldan çeken kişiye ait olduğu yazıyormuş',
-  'mahkememizin yapılan duruşmasında tarafların usulüne uygun olarak çağrıldığı görüldü davacı vekilinin hazır olduğu davalının ise mazeret bildirmeksizin duruşmaya katılmadığı tespit edildi dosyada bulunan bilgi ve belgeler incelendi tanık beyanlarının alınmasına eksik evrakların tamamlanması için ilgili kurumlara müzekkere yazılmasına ve duruşmanın ileri bir tarihe bırakılmasına karar verildi',
-  'dosyada yapılan inceleme sonucunda davalı adına çıkarılan tebligatın iade edildiği görüldü adres kayıt sisteminden yeni adres araştırması yapılmasına tespit edilecek adrese yeniden tebligat gönderilmesine ve tebligat sonucunun beklenmesine karar verildi dosyanın işlemden kaldırılmasına yer olmadığı değerlendirildi',
-  'tanığın kimlik tespiti yapıldı ve yemin ettirildi tanık olay günü taraflar arasında tartışma yaşandığını sanığın müştekiye yönelik hakaret içerikli sözler söylediğini ve çevrede bulunan kişilerin araya girdiğini ifade etti beyanı okundu doğruluğu soruldu ve imzası alındı',
-  'alacaklı vekili tarafından sunulan takip talebi üzerine borçlu hakkında ilamsız icra takibi başlatıldı ödeme emrinin borçluya tebliğine yasal süresi içinde ödeme yapılmadığı takdirde haciz işlemlerine geçilmesine karar verildi dosya işlem sırasına alındı',
-  'ilgili nüfus müdürlüğünden gönderilen kayıt örneği incelendi davacının medeni halinin evli olduğu ve çocuklarının bulunduğu tespit edildi nüfus kayıt örneğinin dosya arasına alınmasına ve taraflara tebliğine karar verildi',
-  'mahkeme kaleminde dosya düzeni kontrol edildi eksik evrak listesi çıkarıldı ve taraflara bildirim yapıldı',
-  'hakaret şikayeti üzerine ifade alındı taraflar dinlendi ve dosya incelemeye gönderildi',
-  'savunma dilekçesi verildi duruşma günü yeniden belirlendi ve taraflara haber verildi',
-  'mahkeme ara karar verdi tanıkların gelecek celsede yeniden dinlenmesine hükmetti',
-  'borçluya ödeme kolaylığı tanındı taksit planı oluşturuldu ve dosya takipte bırakıldı',
-  'tapu kaydı kontrol edildi taşınmazın malik bilgisi dosya arasına eklendi ve inceleme tamamlandı',
-  'işçi alacağını talep etti hesap dökümü istendi ve taraflara sunulmak üzere dosyaya eklendi',
-  'duruşma zaptı hazırlandı taraflara okundu ve imza altına alınarak dosyada saklandı',
-  'şüphelinin ifadesi tamamlandı deliller toplandı ve soruşturma dosyası değerlendirmeye alındı',
-  'tebligat mazbatası dosyaya ulaştı tarafın usulüne uygun olarak haberdar edildiği anlaşıldı',
-  'dilekçe usulüne uygun olarak verildi ve kayıt altına alındı',
-  'mahkeme celbi taraflara tebliğ edildi duruşma günü bildirildi',
-  'eksik evrak tamamlandığında dosya incelemeye alınacaktır',
-  'tutanak düzenlendi taraflarca imzalandı ve dosyaya konuldu',
-  'avukat vekaleti mahkemede kabul edildi temsil işlemleri başladı',
-  'karar usulüne uygun olarak ilan edildi ve taraflara bildirildi',
-  'mahkeme duruşmayı erteledi yeni tarih belirlendi',
-  'delil listesi taraflara tebliğ edildi itiraz süresi başlatıldı',
-  'ödeme emri alındı borçluya bildirildi ve cevap bekleniyor',
-  'dosya arşiv işlemi için hazırlandı ve kayıt kapatıldı',
-  'zabıt katibi duruşma tutanağını yazdı taraflar okudu ve onayladı',
-  'dava açma süresi dolmadan dilekçe verildi ve dosya oluşturuldu',
-  'hakim dosyayı inceledi duruşma günü belirledi ve taraflara bildirdi',
-  'noter senedi icraya verildi borçluya ödeme emri gönderildi',
-  'taraflar anlaştı sulh oldu dosya uzlaşma ile sonuçlandı',
-  'mahkeme yazı işlerine dosya gönderildi kayıt altına alındı',
-  'ceza dosyasında ifade alındı tutanak tutuldu ve imzalandı',
-  'avukat müvekkili için dava açtı harç yatırıldı ve dosya numarası alındı',
-  'icra dosyasında borç ödendi alacaklı memnun oldu ve dosya kapatıldı',
-  'nafaka dosyasında ödeme yapıldı alacaklı taraf bilgilendirildi',
-  'duruşma salonunda düzen sağlandı celse başladı ve tutanak yazıldı',
-  'şikayetçi ifadesini verdi imzaladı ve dosyaya konuldu',
-  'mahkeme kararı yazıldı imzalandı ve tebligat hazırlandı',
-  'ilam dosyası icra müdürlüğüne gönderildi takip başlatıldı',
-  'taraflar duruşmaya geldi hakim dosyayı gördü ve karar verdi',
-  'dava dosyası kayboldu yeniden oluşturuldu ve işleme alındı',
-  'bilirkişi atandı inceleme yapıldı ve rapor yazıldı',
-  'yeni tanık listesi sunuldu hakim kabul etti ve celp gönderildi',
-  'hükümlü tahliye oldu denetimli serbestlik şartları açıklandı',
-  'dosya yeniden açıldı eksikler tamamlandı ve incelemeye alındı',
-  'kararın tebliği yapıldı itiraz süresi başladı ve dosya bekletildi',
-  'kolluk raporu geldi dosyaya eklendi ve savcı bilgilendirildi',
-  'savunma yazıldı imzalandı ve mahkemeye sunuldu',
-  'müzekkere yazıldı ilgili kuruma gönderildi cevap beklendi',
-  'dava dilekçesi eksik tamamlanması için süre verildi ve dosya bekledi',
-  'idari para cezasına itiraz edildi dosya açıldı ve incelemeye alındı',
-  'iflas davası açıldı alacaklılar toplandı ve malvarlığı tespit edildi',
-  'kat mülkiyeti davası görüldü ortak alanlar belirlendi ve karar yazıldı',
-  'soybağı davası açıldı nüfus kayıtları incelendi ve düzeltme kararı verildi',
-  'fiili tahliye davası açıldı taşınmaz boşaltıldı ve teslim edildi',
-  'suç duyurusu üzerine savcılık dosya açtı şüpheli çağrıldı',
-  'geçici hukuki koruma kararı alındı tedbir uygulandı ve taraf haberdar edildi',
-  'konkordato talebi incelendi geçici süre durdurma kararı verildi',
-  'kişisel verilerin korunması davası açıldı aykırılık tespit edildi',
-  'banka haczi yapıldı hesap bloke edildi ve borçluya bildirildi',
-  'rekor tahsilat yapıldı borç kapatıldı ve dosya sona erdi',
-  'ölünceye kadar bakma davası açıldı sözleşme incelendi haklar belirlendi',
-  'imalat hatası nedeniyle üretici firmaya dava açıldı tazminat istendi',
-  'eser sözleşmesinden doğan davada yüklenici sorumlu tutuldu'
+  'kesinleşme şerhi düşüldü karar icraya konulabilir hale geldi ve dosya infaz birimine gönderildi'
 ];
 
 export const TEXTS_MEDIUM = [
