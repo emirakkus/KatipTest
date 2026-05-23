@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef, useCallback, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { generateResultPdf } from './utils/pdf';
 import { loadProfile, saveProfile, updateWeakWords, updateDailyLog, generateWeakWordText, checkFatigue, createGoal, generateMissions, claimMissionXP, updateCareer, CAREER_STAGES, type UserProfile, type RhythmPoint, type CareerStage } from './store';
@@ -199,6 +199,7 @@ export default function App() {
   const inputRef = useRef<HTMLInputElement>(null);
   const writingAreaRef = useRef<HTMLDivElement>(null);
   const textContainerRef = useRef<HTMLDivElement>(null);
+  const [referenceFontSize, setReferenceFontSize] = useState(settings.fontSize);
   const examPanelRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const gameLoopRef = useRef<NodeJS.Timeout | null>(null);
@@ -1043,6 +1044,39 @@ export default function App() {
       writingAreaRef.current.scrollTop = writingAreaRef.current.scrollHeight;
     }
   }, [completedWords.length, gameState]);
+
+  useLayoutEffect(() => {
+    if (gameState !== 'playing') {
+      setReferenceFontSize(settings.fontSize);
+      return;
+    }
+    const el = textContainerRef.current;
+    if (!el) return;
+
+    const fitReferenceText = () => {
+      const minSize = 10;
+      const maxSize = settings.fontSize;
+      const lineHeight = Math.max(settings.lineHeight, 1.88);
+      let size = maxSize;
+      el.style.lineHeight = String(lineHeight);
+      el.style.overflow = 'hidden';
+      do {
+        el.style.fontSize = `${size}px`;
+        if (el.scrollHeight <= el.clientHeight + 1) break;
+        size -= 0.5;
+      } while (size > minSize);
+      setReferenceFontSize(size);
+    };
+
+    fitReferenceText();
+    const observer = new ResizeObserver(fitReferenceText);
+    observer.observe(el);
+    window.addEventListener('resize', fitReferenceText);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', fitReferenceText);
+    };
+  }, [currentText, settings.fontSize, settings.lineHeight, gameState]);
 
   useEffect(() => {
     if (gameState === 'playing' && settings.gameMode && !gameLoopRef.current) {
@@ -2129,7 +2163,7 @@ export default function App() {
                     </button>
                   )}
                 </div>
-                <div ref={textContainerRef} className={`leading-loose font-mono min-h-[10rem] max-h-[calc(100vh-13.5rem)] sm:max-h-[calc(100vh-12.5rem)] overflow-y-auto whitespace-pre-wrap px-3 py-3 ${settings.darkMode ? 'text-slate-200' : 'text-gray-800'}`} style={{ fontSize: `${settings.fontSize}px`, lineHeight: Math.max(settings.lineHeight, 1.88) }}>
+                <div ref={textContainerRef} className={`leading-loose font-mono min-h-[10rem] max-h-[calc(100vh-13.5rem)] sm:max-h-[calc(100vh-12.5rem)] whitespace-pre-wrap px-3 py-3 ${gameState === 'playing' ? 'overflow-hidden' : 'overflow-y-auto'} ${settings.darkMode ? 'text-slate-200' : 'text-gray-800'}`} style={{ fontSize: `${gameState === 'playing' ? referenceFontSize : settings.fontSize}px`, lineHeight: Math.max(settings.lineHeight, 1.88) }}>
                   {currentText}
                   {particles.map(p => (
                     <div key={p.id} className="fixed w-2 h-2 rounded-full animate-ping" style={{ left: p.x, top: p.y, backgroundColor: p.color }} />
