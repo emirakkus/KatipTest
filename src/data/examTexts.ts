@@ -1,0 +1,149 @@
+import { TEXTS_EASY, TEXTS_MEDIUM, TEXTS_HARD } from './texts';
+
+/**
+ * Sınav metinleri — yeni metin eklemek için `CUSTOM_EXAM_TEXTS` dizisini düzenleyin.
+ * Her `id` benzersiz olmalı (ör. exam-001, exam-002).
+ */
+export type ExamText = {
+  id: string;
+  title: string;
+  category: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  text: string;
+  estimatedTime?: number;
+  source?: string;
+};
+
+function estimateSeconds(text: string): number {
+  const words = text.trim().split(/\s+/).filter(Boolean).length;
+  return Math.max(60, Math.min(600, Math.round(words * 2.2)));
+}
+
+function entry(
+  id: string,
+  title: string,
+  category: string,
+  difficulty: ExamText['difficulty'],
+  text: string,
+  source?: string
+): ExamText {
+  return { id, title, category, difficulty, text, estimatedTime: estimateSeconds(text), source };
+}
+
+/** Kendi gerçek sınav metinleriniz — önce buraya ekleyin / düzenleyin */
+export const CUSTOM_EXAM_TEXTS: ExamText[] = [
+  entry(
+    'exam-001',
+    'Ceza Hukuku — Metin 1',
+    'Ceza',
+    'hard',
+    `suç toplumda oluşan düzenin devamını sağlamak ve temel haklar ile özgürlüklerin korunabilmesi için gereken hukuki değerlerin ihlal edilmesi şeklinde haksızlık oluşturan insan davranışlarıdır bu davranışlar ceza hukuku yaptırımlarına tabi tutulan ve kanunun karşılığında ceza yaptırımı öngördüğü fiillerdir suç teşkil eden fiil bir hakkı ihlal ettiği için haksızlık teşkil eder dolayısıyla her suç aynı zamanda haksızlık teşkil etmektedir ancak her haksızlık suç değildir suç içeriği bakımından kanun koyucunun inancına göre devletin amaçlarıyla çatıştığından yaptırım olarak ceza veya güvenlik tedbirlerini gerektiren fiil kapsamındadır bir fiilin suç olup olmadığını belirlemek kanun koyucuya aittir suçla ilgili temel kavramlar şunlardır fail cezai nitelikteki hukuka aykırı fiili işleyen kişidir yaralama hırsızlık ve dolandırıcılık suçlarında olduğu gibi suçların çoğunluğu herhangi bir kimse tarafından işlenebilir bunlara genel suçlar denir bazı suçlarsa sadece belli hukuki veya fiili durumdaki kişiler tarafından işlenebilir bunlara ise mahsus suçlar denir her suçun faili olduğu gibi mutlaka hukuki konusu bulunmaktadır örneğin hırsızlık suçunun hukuki konusu zilyetlik yaralama suçunun hukuki konusu vücut bütünlüğü insan öldürme suçunun hukuki konusu yaşam hakkının ihlalleridir suçun maddi konularına bakacak olursak yalnızca maddi varlığı bulunan varlıklar üzerinde suç işlenebilir insan suçun maddi konusu olabilir tüzel kişiler topluluklar ve cismani varlığı olmayan şeyler suçun maddi konusunu oluşturamazlar örneğin hırsızlık suçunun maddi konusunu çalınan eşya oluştururken kasten öldürme suçunun maddi konusunu insan oluşturmaktadır mağdur insan toplum devlet ve tüzel kişiler olabilmektedir her suçun mutlaka mağduru vardır suçun mağdurları suç işlenirken hayatta olan kişilerdir kimse kendi kendisine karşı suç işleyemez örneğin intihar suç değildir ancak şikayete bağlı suçlarda şikayet hakkı kullanımı suçun mağduruna tanınmıştır suç devlete toplumun varlığına ve gelişimine ilişkin menfaatlerinin ihlalinden kaynaklanan sosyal zarar yanında doğrudan olarak zarar da doğurur bu zararlar her suçta mutlaka bulunmaktadır ihlal zarar verme şeklinde ya da tehlikeye düşürme şeklinde kendini göstermektedir suç işlenmesi nedeniyle mağdur olan kişi ile suçtan zarar gören kişi birbirinden farklılık göstermektedir`,
+    'Gerçek sınav'
+  ),
+  entry(
+    'exam-002',
+    'Ceza Hukuku — Metin 2',
+    'Ceza',
+    'hard',
+    `genel olarak kanunlarda suç olarak tanımlanan eylemleri işleyen kişilere verilen yaptırımlara ceza denir cezalar keyfi olmamalıdır hakkaniyete uygun insani herkese eşit olacak şekilde uygulanmalıdır verilen cezalarda toplum yararı gözetilmelidir genel olarak cezalar hapis cezası para cezası vücuda zarar verme hayata son verme veya fail tarafından bir şeyin yapılması şeklinde olabilir türk ceza kanununda bedensel veya hayata yönelik cezalar bulunmaz türk hukuk sisteminde işlenen suçların karşılığı olarak hapis cezaları veya adli para cezaları öngörülür türk hukuk sistemindeki cezaların temel özellikleri arasında cezaların şahsiliği ilkesi bulunmaktadır buna göre kişiler başka birinin işlediği fiiller nedeniyle sorumlu tutulamaz kanunilik ilkesi de cezaların başka bir özelliğidir ceza yasa koyucu tarafından kanunla konulup ancak kanunla kaldırılabilir yasa koyucu neyin suç olup olmayacağı suçların karşılığı cezaların neler olacağı konusunda takdir hakkına sahiptir ayrıca cezanın insan onuruyla bağdaşır nitelikte olması gerekir hiç kimse insan onuru ile bağdaşmayan bir ceza veya muameleye tabi tutulamaz ayrıca fiili gerçekleştiren kişiye verilen cezanın kişiye uydurulması gerekir buna cezanın bireyselleştirilmesi denir suç sayılan eylemler bazı şartlar altında gerçekleştirilirse suç olarak ifade edilmeyebilir bazı durumlarda da suç sayılmakla birlikte ceza indirimi yapılması ya da ceza verilmemesi sonucunu doğuran sebeplere hukuka uygunluk nedenleri denir bu durumlarda işlenen fiiller suç olmayıp kişiye ceza verilmesi uygun değildir ayrıca güvenlik tedbiri uygulanamaz bu kişiler hakkında dava açılmışsa beraat kararı verilir bazı hallerdeyse kişinin ceza sorumluluğu ortadan kalkar işlenen fiil nedeniyle failin hangi şartlarda sorumlu tutulacağının tespitinde kusur durumu önemlidir işlediği fiil ile ilgili kişideki irade gelişiminin şartları bu şartlara istinaden gerçekleştirdiği eylem nedeniyle failin şahsen cezalandırılması gerekmediği kusur durumu ile ilgilidir kanuni tanımda yer verilen suç failin kusur yeteneği olmasa bile işlenmiş olursa haksız bir fiildir ve suç niteliğini korur kanun koyucu faile bazı hallerde kusur yeteneği olmadığı için ceza verilmemesi gerektiğini bazı hallerdeyse kusur yeteneğinin zayıf olduğu için nispeten daha hafif ceza verilmesi gerektiğini kayıt altına almıştır`,
+    'Gerçek sınav'
+  ),
+  entry(
+    'exam-003',
+    'Ceza Hukuku — Metin 3',
+    'Ceza',
+    'hard',
+    `failin gerçekleştirmiş olduğu fiille ortaya çıkan sonuç arasında manevi bağ bulunur bu manevi bağ kusur olarak ifade edilir failin cezalandırılması için bağın türünün tespit edilmesi önemlidir örneğin akıl hastalığı bulunan kişinin işlediği suç fiilinin farkında olmaması durumunda cezalandırılması mümkün değildir suçun manevi unsurları olarak ifade edilen kast ve taksir kavramları failin gerçekleştirdiği fiille arasındaki nedensellik bağını ifade etmektedir kast kusurlu iradenin tipik gerçek şeklidir suç kanunu emrinin açıkça ihlalidir emrin ihlali failin yasaklanan fiili istemesi durumunda gerçekleşir kastın varlığı için sadece hareketin değil sonucun da istenmesi gerekir türk ceza kanununa göre kast suçun var olduğunu söyleyebilmek için kastın varlığı gereklidir kast ise suçun kanuni tanımındaki unsurların bilerek ve istenerek gerçekleşmesini ifade eder kastın varlığı suçun bütün aşamalarında aranır ceza kanunlarını bilmiyor olmak elbette mazeret olarak sayılmaz tüm kanunların herkes tarafından bilinmesini beklemek söz konusu olamaz hukuku meslek edinen kişilerin bile bunları ezbere bilmeleri veya suç olduğunu tahmin etmeleri mümkün değildir bu gibi durumlarda gerçekleştirilen fiilin icrası sırasında suçun kanuni tanımında sayılan maddi unsurları bilmeyen bir kişinin kasten hareket ettiği söylenemez suçun kanuni tanımında sayılan unsurların tamamı bilinmese bile ahlaki yönden yanlış olduğu bilinen eylemin suç olacağı ihtimalini kişi tahmin edebilmelidir örneğin yaralama veya hileli davranışlarla dolandırma herkes tarafından bilinen ahlaken de yanlış kabul edilen davranışlardır bu durumda kimse suçun kanuni tanımında bulunan unsurları bilmediğini öne süremez doğrudan kast bilerek ve istenerek suçun kanuni tanımında yer alan fiilin işlenmesidir örneğin pastanede bir kimseye ateş ederek öldüren kişi doğrudan kastla hareket etmiş ise insan öldürme suçunu işlemiş olur dolaylı kast suçun kanunda tanımlanan fiilin gerçekleşmesinin mümkün veya muhtemelen öngörülmesine rağmen neticenin meydana gelmesinin göze alınması şeklinde bir düşünce ile fiilin işlenmesidir örneğin pastanede ateş eden fail oranın kalabalık olması sebebi ile öldürmek istediği kişi dışında başka kişilerin de zarar görme ihtimalini düşünmelidir ateş sonucu başka kişileri de yaraladığında yaralama suçundan da ceza alır`,
+    'Gerçek sınav'
+  ),
+  entry(
+    'exam-004',
+    'Ceza Hukuku — Metin 4',
+    'Ceza',
+    'hard',
+    `taksir yasalarda öngörülen dikkat ve özen yükümlülüğü ihlalinden kaynaklanan öngörülebilir bir suçun kasıtsız olarak işlenmesidir taksir ile işlenen fiiller sadece kanunda açıkça belirtilen hallerde başvurulan sorumluluk şeklidir taksirde kusur ağırlığı kasıtlı suçlara göre daha azdır fail çoğu zaman kendisi de bir mağduriyet yaşar özellikle trafik kazalarında bu durum sıklıkla yaşanır dikkatli ve tedbirli davranarak ortaya konulması gereken irade yerine dikkatsiz ve tedbirsiz davranarak başka bir irade ortaya konulur taksirli sorumluluktan söz edebilmek için mutlaka zararlı neticenin gerçekleşmesi gerekir taksirle işlenen suç neticesinde verilecek olan ceza failin kusur oranına göre değişir basit taksir öngörülebilir neticeyi failin öngörememesi sonucunda ortaya çıkar failin dikkatli ve özenli olması gerekirken bu yükümlülüğe aykırı hareketle suç fiilini işlemesidir basit taksir için bilinçsiz taksir adi taksir gibi ifadeler de kullanılmaktadır örneğin gerekli iş güvenliği önlemlerini almayan bir fabrikada işçi çalıştıran işveren iş kazası neticesinde yaralamaya sebebiyet verirse basit taksirle yaralama suçunu işlemiş olur birden fazla kişinin taksirle işlediği suçlarda herkes kendi kusurundan dolayı sorumlu olur her failin cezası kendi kusur oranlarına göre ayrı ayrı belirlenir bilinçli taksir failin öngörüsüne rağmen neticenin gerçekleşmesini istemeyip kural ihlali yapıp ya da şans kişisel yetenek gibi etkilere güvenerek hareket etmesiyle suç fiilini işlemesidir fail sonucun meydana gelebileceğini öngörmesine rağmen sonucun gerçekleşmeyeceği inancıyla hareket eder örneğin sollamanın yasak olduğu yolda bu yasağa uymayıp şoförlüğüne güvenerek sollama yapan ve ölüme sebebiyet veren kişiye bilinçli taksirle ölüme neden olma suçundan dolayı ceza verilir taksirli hareketle sebep olunan olayda failin kişisel ve ailevi durumu artık cezanın verilmesini anlamsız kılacak kadar mağdur olmasına neden olursa ceza verilmez taksirle işlenen suçlarda kanundaki tanımında kastın unsurlarından bilerek ve istenerek işlenmesi yer almaz taksirden bahsedebilmek için failin suç işlerken suç işlemek amacıyla hareket etmemiş olması gerekir kastla taksir arasındaki önemli ayrım isteme unsurudur kanunun fiilin taksirle işlenen şeklini doğrudan suç olarak kabul etmediği durumlarda taksirle işlenen fiilin suç olarak kabulü mümkün değildir`,
+    'Gerçek sınav'
+  ),
+  entry(
+    'exam-005',
+    'Ceza Hukuku — Metin 5',
+    'Ceza',
+    'hard',
+    `kişi işlemeyi kastettiği bir suçu elverişli hareketlerle doğrudan doğruya icrasına başlayıp elinde olmayan nedenlerle tamamlamazsa teşebbüsten dolayı sorumlu olur suç genelde fiilin işlenmesi ve neticenin meydana gelmesi ile sonuçlanır suçun tam olarak gerçekleşmediği durumlarda da suç genel tanımının dışında kalır işlenen suç tamamlanmaz veya suç unsurlarının eksik olması nedeniyle suçun hukuk tanımına uymaması durumunda suçun özel görünüş şekillerinden bahsetmek gerekir teşebbüs suçun özel görünüş şekillerinden biridir suç yolunda ilerleyen fail çeşitli aşamalardan geçer suç yolunda icra ve tamamlama aşaması olmak üzere iki aşama vardır kasıtlı işlenen suçlarda bahsedilen aşamalara düşünce aşaması da eklenir bu aşama icra aşamasından önce gelir bazen de tamamlanma aşamasını son bulma aşaması takip eder böylece suç yolunda dört aşama vardır denilebilir düşünce aşaması ceza hukukunu ilgilendirmez eyleme dönüşmeyen hiçbir düşünce cezalandırılamaz icra aşamasına geçilmesiyle ceza hukukunun alanına girilir düşüncenin somutlaştırılarak dış dünyada eyleme dönüşmesi her zaman o suçun icrasının başladığı anlamına gelmez bu aşamada da hazırlık hareketleri icra hareketleri ayırımı yapılır hazırlık aşaması kural olarak cezalandırılmaz ancak bazı istisna teşkil eden suçların hazırlık hareketleri cezalandırılabilir icra aşamasında failin suç işleme düşüncesi icrai veya ihmali bir hareketle somutlaşır icra aşamasından sonra tamamlama aşaması gelir tamamlanmış suç fail tarafından işlenen somut fiilin kanundaki soyut tanıma uymasını ifade etmektedir fiil suç tanımına uygun bulunduğu anda suç tamamlanır teşebbüs aşamasında kalmış suçu tam tamamlanmış suçtan ayıran nokta tamamlanma anının yokluğudur suçun tamamlanması ile son bulması aynı olabileceği gibi bazen çakışmayabilir örneğin tokat atıldığında yaralama suçu oluşarak tamamlanır birden fazla tokat atıldığında son tokadın atılmasıyla suç tamamlanmış olur aslında ilk tokadın atılmasıyla suç zaten tamamlanmıştır bütün unsurları tamamlanmış suçla teşebbüs aşamasında kalmış suç arasında manevi unsur yönünden fark yoktur her ikisi de suç sayılan belirli bir sonuca ulaşabilmek amacı ile işlenir teşebbüste eksik failin iradesi dışında kalan nedenle bu sonuca götürecek hareketlerin bitmesi veya biten hareketlerden hedeflenen sonucun oluşmasına engel olmasıdır`,
+    'Gerçek sınav'
+  ),
+  entry(
+    'exam-006',
+    'Ceza Hukuku — Metin 6',
+    'Ceza',
+    'hard',
+    `failin suçun icra eyleminden kendi isteğiyle vazgeçmesi ya da kendi çabası sonucu suçun tamamlanmasını veya sonucun gerçekleşmesini önlemesi gönüllü vazgeçme şeklinde ifade edilir gönüllü vazgeçmede fail suç yolunda sonuna kadar ilerleme imkanına sahipken kendi isteği ile devam etmek istemez gönüllü vazgeçen kişi teşebbüsten dolayı cezalandırılmaz eylemin tamamlanmış olan kısmı eğer herhangi bir suç oluşturursa bu durumda sadece o suça ait ceza ile cezalandırılır gönüllü vazgeçmede fail icra hareketlerine devam edebilecek ve neticeyi gerçekleştirebilecek imkana sahiptir ancak bunu istememektedir neticeyi gerçekleştirme ve devam etme isteğinin olmasına rağmen bu eylemi gerçekleştiremiyorsa gönüllü vazgeçme yoktur saik önemli değildir mağdura duyduğu acıma cezadan korkma günah işleme düşüncesi toplumsal dışlanma endişesi gibi nedenlerle vazgeçme olabilir vazgeçme failin özgür iradesi ile olmalıdır dışarıdan gelen maddi veya manevi baskı altında vazgeçen kişi gönüllü vazgeçmiş olmaz failin iradesi zorlanmış olmamalıdır örneğin failin hırsızlık yapmak için girdiği evde ev sahibine acıyarak ya da günah işleme düşüncesi ile icra hareketlerini tamamlamaktan vazgeçtiği durumda bu vazgeçme gönüllü gerçekleşmiştir sadece tamamlanan kısım suç oluşturuyorsa fail o kısımdan sorumlu olur verilen örnekte fail sadece konut dokunulmazlığının ihlalinden sorumlu olur ancak güvenlik görevlisinin düdüğünü duyduktan sonra pencereden atlayan failin vazgeçme eylemi gönüllü olmayıp fail hırsızlığa teşebbüs suçundan dolayı cezalandırılır failin fiilini sona erdirmesine herhangi bir neden engel olacak şekilde sebep olmuşsa ve bu nedenle fail amacına ulaşamayacağını anlayarak eyleme devam etmeyi bırakmışsa gönüllü vazgeçme yoktur devam etme imkanı olmalı ve kendi iradesiyle kullanmaktan vazgeçmiş olmalıdır failin pişman olurken samimi olması şart değildir ceza korkusu üçüncü kişilerin tavsiyesi veya acıma gibi nedenler failin vazgeçme sebepleri arasındadır etkin pişmanlık kişinin işlemiş olduğu suçlardan dolayı kendi isteğiyle sonradan pişman olması suç teşkil eden fiilin meydana getirdiği olumsuz sonuçları gidermesi halinde uygulanan ceza hukuku kavramıdır suç oluştuktan sonra fail suç eyleminden kendi isteği ile döner ise etkin pişmanlık cezayı ortadan kaldırabileceği gibi cezada indirim yapılabilmesini de sağlar`,
+    'Gerçek sınav'
+  ),
+  entry(
+    'exam-007',
+    'Ceza Hukuku — Metin 7',
+    'Ceza',
+    'hard',
+    `haksız tahrik failin kendi kusuru olmaksızın başkalarının haksız hareketleri sonucunda kapıldığı hiddet veya elemin etkisiyle bir tepki suçu işleyerek hiddetle işlediği tepki suçunun cezasının bir miktar indirilmesidir insan psikolojisinin buhran halini ifade eden haksız tahrik cezayı hafifleten genel kişisel ve kanuni bir nedendir haksız tahrikin kişide oluşturduğu öfke ve şiddetli elem nedeniyle failin iradesinin özgürlüğünün azaldığı ve mağdurun haksız hareketinin suça neden olduğu düşüncesiyle faile daha az ceza verilir cezanın azaltılmasını gerektiren iki neden bulunur bunlar psikolojik nedenler ve haksız tahriktir psikolojide heyecanın bir türü şeklinde nitelendirilen hiddet halidir bu durumda insanın iradesi zayıflayarak rahatlıkla suç işleyebilir bu şekilde suç işleyen kişiler normal durumlarda suç işleyen kişilerden daha az tehlikelidir haksız harekete uğrayan kişinin içine düştüğü bu psikolojik durum göz önünde bulundurulmalıdır çünkü haksız harekete uğrayan kişi iradesi zayıfladığı için kolaylıkla suç işleyebilir objektif veya hukuksal nedenlerin varlığında tahrik edilmesi nedeniyle suç işleyen kişi tek başına suç işlemiş sayılmaz tahrik eden mağdurun da suçu vardır olayda yalnızca faili sorumlu tutmak haksızlık olur çünkü bu suçun işlenmesinde mağdurun yaptığı hareket etkili olmuştur mağdurun kusurlu hareketleri failin cezasında indirim yapılmasını gerektirir kendisine yöneltilen haksız hareketler sonucunda sakinliğini koruması gerekirken bunu yapamayarak duygusal çöküntü yaşayan duyduğu üzüntü ve öfke nedeniyle suç işleyen failin bu etkilenmesine hukuki değer vermek ceza adaletinin gereğidir hakim her olayın özelliğine göre hangi fiilin tahrik edici fiil olduğunu tespit eder tahrik edildiğini söyleyen kişinin durumu olay yeri ve zamanı dikkate alınarak belirlenir tahrik eylemi failin şahsına vücut bütünlüğüne hürriyetine yönelebilir hatta failin yakınlarına sevip değer verdiği kimselere değer yargılarına malvarlıklarına veya faille herhangi bağı olmayan üçüncü kişilere yönelik işlenebilir tahrike sebebiyet veren fiil haksız olmalıdır bir hareketin haksız olması için hukukla çatışması yeterlidir hareketin ayrıca suç oluşturuyor olması gerekmez suçsa zaten haksızdır hiddet şiddetli bir öfkenin hali olarak tanımlanmaktadır kanun hiddet ve elemi birbirine benzediği için aynı nitelikte kabul eder`,
+    'Gerçek sınav'
+  ),
+  entry(
+    'exam-008',
+    'Ceza Hukuku — Metin 8',
+    'Ceza',
+    'hard',
+    `kişinin kendisine veya başkasına ait bir hakka yönelik gerçekleşmesi ya da tekrarı muhakkak olan haksız saldırıyı o andaki mevcut hal ve koşullara göre uzaklaştırmak amacıyla işlenen fiiller meşru savunmadır zorunluluk kapsamında işlenen fiille yapılan saldırının arasında orantı olmalıdır bu zorunluluktan dolayı fail cezalandırılmaz meşru savunma tüm ceza kanunlarında kabul edilen hukuka uygunluk nedenlerinden biridir insanda bulunan kişinin kendini koruma içgüdüsüne dayanır haksız saldırıyla karşılaşan kişi kendisini koruma amacıyla hareket eder hukuk düzeni saldırıya uğrayan kişinin menfaatini kanuna karşı çıkan kişinin menfaatine tercih eder meşru savunma söz konusuysa suç olmadığından failin cezai sorumluluğu bulunmaz bütünüyle sona ermiş saldırıda meşru savunma olmaz başlamamış ancak başlaması muhakkak olan devam eden veya bitmiş olmasına rağmen tekrarı mümkün bulunan saldırı mevcut saldırı sayılır ileride saldırıda bulunacaktı gibi düşünceyle saldırı yapmak meşru savunma değildir saldırı tamamen bittikten sonra bir fiilin işlenmesi halinde de savunmadan bahsedemeyiz bu durumda şartları mevcutsa haksız tahrik söz konusu olur saldırı mutlaka fiziki bir şiddet olarak anlaşılmamalıdır önemli olan savunmayı zorunlu kılan tehlikelerin varlığıdır örneğin bir kişi kapı önünde durup insanların binaya girmelerini engelliyorsa zorunluluk durumu vardır denir ancak sözlü saldırılar bu anlamda saldırı olarak kabul edilmez bir kimsenin belli şekilde hareket etmesine izin veren veya emreden kuralların bulunmaması gerekir hukuka uygunluk nedenleri varken gerçekleşen saldırılar haksız değildir örneğin bir tutuklama emrini yerine getiren polis memuruna karşı şiddet uygulayan kimse meşru savunma durumunda olamaz sadece insanların gerçekleştirdiği eylemler haksız olabilir hayvan saldırısı veya doğada gerçekleşen olaylara karşı savunma meşru savunma olmaz ancak bir tehlike söz konusu olursa o zaman zorunluluk halinden söz edilir eğer bir hayvan sahibi tarafından araç olarak kullanılıyorsa yani saldırıda bulunması için yönlendiriliyorsa saldırgan hayvan değil hayvan sahibidir kişi haksız saldırıya kendisi neden olmuş olsa bile haksız saldırıyı yapan kişi hukuken korunmadan mahrum bırakılamaz kendi haksız hareketiyle diğer kişiyi meşru savunma durumuna sokmuşsa kişinin savunması meşru savunma sayılamaz`,
+    'Gerçek sınav'
+  ),
+  entry(
+    'exam-009',
+    'Ceza Hukuku — Metin 9',
+    'Ceza',
+    'hard',
+    `kendisine veya başkasına ait bir hakka yönelik olup kişinin bilerek neden olmadığı başka şekilde korunma olanağı bulunmayan ağır bir tehlikeden kurtulmak veya başkasını kurtarmak zorunluluğu ile işlenen fiiller zorunluluk halini ifade eder tehlikenin ağırlığıyla konu ve kullanılan araç arasında orantı bulunması koşuluyla işlenen fiillerden dolayı faile ceza verilmez zorunluluktan bahsedebilmek için yaklaşan bir tehlike veya mevcut bir tehlike olmalıdır derhal korunma hareketi yapılmazsa korunmaya çalışılan yararın zarar görme ihtimali daha büyük olabileceğinden yakın tehlike de mevcut tehlike olarak kabul edilir tehlike durumunun nedeni önemli değildir insanın açlık susuzluk gibi ihtiyaçları veya doğal nedenler hatta insan saldırısı da neden olabilir insan saldırısı durumunda saldırıya uğrayan kişinin hareketi saldırgana karşı değil tehlikeye yabancı başka kimseye karşı olmalıdır zorunluluk hali gerçekleştiğinde tehlike mutlaka masum üçüncü kişinin zarar görmesini haklı gösterecek ağırlıkta olmalıdır bu durumda hem tehlikenin ağır olması hem de ortaya çıkabilecek zararın ağır olması gerekir örneğin tehlikeye neden olan kişi daha sonra yaptığı hareketi bertaraf etmek amacıyla üçüncü kişilere zarar vermesi durumunda zorunluluk halinden faydalanamaz tehlikeye kasten veya bilinçli taksirle sebep olan kişi bu durumdan faydalanamaz taksirli hareketi nedeniyle tehlikeye sebep olan kimse tehlikeye bilerek neden olmuş sayılmaz tehlikeye bilerek neden olunması failin hem iradi hareketle tehlikeye neden olması hem de tehlikeyi öngörmüş veya istemiş olması anlamına gelmektedir korumaya ilişkin koşullarda kişinin fiilinin tehlikeden kurtulmak için zorunlu olması gerekmektedir başka türlü kurtulma imkanı varsa suç işleyip tehlikeyi önleyen kişi zorunluluk halinden faydalanamaz tehlikede bulunan hak başkasının hakkına zarar vermeden korunabilir bir haksa zorunluluk hali yoktur örneğin kaçarak tehlikeyi önlemek mümkünse yine zorunluluk hali yoktur tehlikeye maruz kalan kişi bu tehlikeye göğüs germe yükümlülüğündeyse bu kişi tehlikeyi bertaraf etmek için üçüncü kişilere zarar verdiğinde zorunluluk halinden yararlanamaz örneğin gemi kaptanı olası bir tehlikede tüm yolcuları tahliye ettikten sonra gemiyi terk edebilir bir komutan savunmaya yarayan tüm araçları tüketmeden düşmana teslim olursa zorunluluk hali olmaz`,
+    'Gerçek sınav'
+  ),
+  entry(
+    'exam-010',
+    'Ceza Muhakemesi — Metin 10',
+    'Ceza',
+    'hard',
+    `kanunun ayrı tuttuğu durumlar dışında sanık duruşmada hazır bulunmazsa hazır bulunmayan sanıkla ilgili duruşma yapılmaz sanığın duruşmaya gelmemek için geçerli bir nedeni yoksa duruşmaya zorla getirme kararı alınır ancak sanıkla ilgili elde edilen deliller dikkate alındığında mahkumiyet haricinde bir karar verilmesi sonucuna ulaşılırsa dava sanığın yokluğunda bitirilir mahkemeye gelen sanığın duruşmanın devam ettiği süre boyunca hazır olması sağlanır ve duruşmadan kaçmasını engelleyecek önlemler alınır sanık sorguya çekilir ve artık duruşmada bulunmasına gerek kalmaz ise bu durumdaki sanık duruşmadan çekilebilir ya da verilen aradan sonraki oturumlara katılmasa bile dava yokluğunda bitirilir mahkeme tarafından sorgusu yapılan sanık ya da bu hususta sanık tarafından yetki verilen müdafi talepte bulunursa mahkeme sanığı duruşmada hazır bulunmaktan bağışık tutabilir hastalık disiplin önlemi veya zorunlu diğer sebeplerle yargılamanın yapıldığı yargı çevresi dışındaki bir hastane ya da tutukevine gönderilmiş sanığın sorgusu yapılmışsa diğer celselere katılmamasına mahkeme tarafından karar verilebilir sanığın beş yıl hapis ve daha fazla cezasını gerektiren suçlar dışındaki suçlar için istinabe yoluyla sorgusu yapılabilir sorgu için saptanan gün cumhuriyet savcısı sanık ve müdafine iletilir cumhuriyet savcısı ile müdafinin sorgu işlemi esnasında hazır bulunması zorunlu değildir sanığa sorgu işlemi başlamadan önce ifadesini esas mahkemesi önünde verme isteği sorulur sorgu işlemine ait tutanak duruşmada okunur yurt içinde bulunan sanığın sorgusu hakim veya mahkemenin zorunlu bulduğu hallerde görüntülü ve sesli iletişim tekniği kullanılarak yapılır bu durumdaki sanığın duruşmalara aynı teknik aracılığıyla katılmasına karar verilir yurt dışında olması sebebiyle duruşma tarihinde duruşmaya katılması mümkün olmayan sanık yönünden duruşmanın yapılacağı tarihten önce duruşma açılarak veya istinabe yoluyla sorgusu yapılabilir duruşmada sanığın yüzüne karşı suç ortaklarından birisinin ya da bir tanığın doğruyu söylemeyeceği izlenimi oluşabilir bu durumda mahkeme sorgu ve dinleme işlemi esnasında sanığı mahkeme salonundan çıkarma kararı alabilir sanık tekrar geldiğinde ise tutanaklar okunur duruşma anında savcı ya da müdafi sanığa katılana tanıklara ve duruşmaya çağrılan diğer kişilere doğrudan soru sorabilirler`,
+    'Gerçek sınav'
+  ),
+];
+
+/** Örnek metinler (isteğe bağlı — CUSTOM_EXAM_TEXTS yeterliyse bu bloğu silebilirsiniz) */
+const SAMPLE_EXAM_TEXTS: ExamText[] = [
+  ...TEXTS_EASY.slice(0, 10).map((text, i) =>
+    entry(`exam-sample-e-${String(i + 1).padStart(2, '0')}`, `Örnek Kolay ${i + 1}`, 'Hukuk', 'easy', text, 'Örnek')
+  ),
+  ...TEXTS_MEDIUM.slice(0, 10).map((text, i) =>
+    entry(`exam-sample-m-${String(i + 1).padStart(2, '0')}`, `Örnek Orta ${i + 1}`, 'Resmi', 'medium', text, 'Örnek')
+  ),
+  ...TEXTS_HARD.slice(0, 10).map((text, i) =>
+    entry(`exam-sample-h-${String(i + 1).padStart(2, '0')}`, `Örnek Zor ${i + 1}`, 'Ceza', 'hard', text, 'Örnek')
+  ),
+];
+
+/** Sınav kataloğunda gösterilen tüm metinler (önce sizin metinleriniz, sonra örnekler) */
+export const examTexts: ExamText[] = [...CUSTOM_EXAM_TEXTS, ...SAMPLE_EXAM_TEXTS];
+
+export const EXAM_CATEGORIES = [...new Set(examTexts.map((e) => e.category))].sort();
+
+export function getExamById(id: string): ExamText | undefined {
+  return examTexts.find((e) => e.id === id);
+}
+
+/** Sınav modunda "Otomatik" süre — resmi sınav standardı 3 dakika */
+export const EXAM_AUTO_DURATION_SEC = 180;
+
+export function resolveExamTimerSeconds(
+  _exam: ExamText,
+  mode: 'auto' | 60 | 180 | 300 | 0
+): number {
+  if (mode === 0) return 0;
+  if (mode === 'auto') return EXAM_AUTO_DURATION_SEC;
+  return mode;
+}

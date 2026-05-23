@@ -33,6 +33,7 @@ export interface TestResult {
   keyPresses: { key: string; correct: number; incorrect: number }[];
   errorWords: { word: string; count: number }[];
   wordErrorDetails?: { expected: string; typed: string; errorType: string; charErrors: number }[];
+  trainerSession?: boolean;
 }
 
 export interface Badge {

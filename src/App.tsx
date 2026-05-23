@@ -1,9 +1,44 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { generateResultPdf } from './utils/pdf';
 import { loadProfile, saveProfile, updateWeakWords, updateDailyLog, generateWeakWordText, checkFatigue, createGoal, generateMissions, claimMissionXP, updateCareer, CAREER_STAGES, type UserProfile, type RhythmPoint, type CareerStage } from './store';
 import { saveContactMessage, signUp, signIn, signOut, getUser, getSession, loadProfileFromDb, getTestHistory, getLeaderboard, saveTestResult, saveProfileToDb, syncToCloud, isDbEnabled } from './db';
 import { LEGAL_PHRASES, SPECIAL_9_MIN_TEXT, TEXTS_EASY, TEXTS_MEDIUM, TEXTS_HARD } from './data/texts';
+import {
+  loadAnalytics,
+  saveAnalytics,
+  processSessionEnd,
+  syncLegacyStreak,
+  refreshStreakForToday,
+  normalizeKey,
+  generateTrainerText,
+  describeTrainerFocus,
+  getWeakestKeys,
+  generateResultSuggestions,
+  type AnalyticsStore,
+  type KeyPressEvent,
+  type TrainerConfig,
+} from './analytics';
+import { AnalyticsPanel } from './components/analytics/AnalyticsPanel';
+import { KeyboardHeatmap } from './components/analytics/KeyboardHeatmap';
+import { ResultSuggestions } from './components/analytics/ResultSuggestions';
+import { examTexts, resolveExamTimerSeconds, type ExamText } from './data/examTexts';
+import {
+  loadExamProgress,
+  saveExamProgress,
+  recordExamAttempt,
+  generateExamSuggestions,
+  getPerformanceBadge,
+  computeCompletion,
+  avgReactionMs,
+  type ExamLiveResult,
+  type ExamProgressStore,
+  type ExamTimerMode,
+} from './exam';
+import { ModesHub } from './components/exam/ModesHub';
+import { ExamCatalog } from './components/exam/ExamCatalog';
+import { ExamCountdown } from './components/exam/ExamCountdown';
+import { ExamResultScreen } from './components/exam/ExamResultScreen';
 
 
 const PENDING_SIGNUP_NAME_KEY = 'katiptest_pending_signup_name';
@@ -15,7 +50,6 @@ const EXAM_TEXTS_MAP: Record<string, string[]> = {
   all: [...TEXTS_EASY, ...TEXTS_MEDIUM, ...TEXTS_HARD]
 };
 
-interface WordState { word: string; isCorrect: boolean; isIncorrect: boolean; isCurrent: boolean; }
 interface TestResult {
   date: string; timestamp: number; textIndex: number; netWords: number; grossWords: number;
   correctChars: number; incorrectChars: number; totalChars: number; accuracy: number; wpm: number;
@@ -25,6 +59,7 @@ interface TestResult {
   keyPresses: { key: string; correct: number; incorrect: number }[];
   errorWords: { word: string; count: number }[];
   wordErrorDetails?: { expected: string; typed: string; errorType: string; charErrors: number }[];
+  trainerSession?: boolean;
 }
 interface Badge { id: string; name: string; description: string; icon: string; earned: boolean; earnedDate?: string; }
 
@@ -73,7 +108,14 @@ const BADGES: Badge[] = [
 
 export default function App() {
 
-  const [gameState, setGameState] = useState<'landing' | 'menu' | 'playing' | 'finished' | 'sudden_death' | 'profile' | 'blog' | 'roadmap' | 'career' | 'exam_setup' | 'contact' | 'leaderboard'>('landing');
+  const [gameState, setGameState] = useState<'landing' | 'menu' | 'playing' | 'finished' | 'sudden_death' | 'profile' | 'blog' | 'roadmap' | 'career' | 'exam_setup' | 'contact' | 'leaderboard' | 'analytics' | 'modes_hub' | 'exam_catalog' | 'exam_countdown' | 'exam_finished'>('landing');
+  const [analytics, setAnalytics] = useState<AnalyticsStore>(() => loadAnalytics());
+  const [examProgress, setExamProgress] = useState<ExamProgressStore>(() => loadExamProgress());
+  const [examLastResult, setExamLastResult] = useState<ExamLiveResult | null>(null);
+  const [countdownValue, setCountdownValue] = useState(3);
+  const [dedicatedExamActive, setDedicatedExamActive] = useState(false);
+  const [examTimerUnlimited, setExamTimerUnlimited] = useState(false);
+  const [activeExamTitle, setActiveExamTitle] = useState('');
   const [examMode, setExamMode] = useState(false);
   const [capsLockOn, setCapsLockOn] = useState(false);
   const [examKeyboard, setExamKeyboard] = useState<'F' | 'Q'>('F');
@@ -83,7 +125,6 @@ export default function App() {
   const [currentWordInput, setCurrentWordInput] = useState('');
   const [completedWords, setCompletedWords] = useState<{ word: string; isCorrect: boolean; correctWord: string; skipped?: boolean }[]>([]);
   const [timeRemaining, setTimeRemaining] = useState(180);
-  const [wordStates, setWordStates] = useState<WordState[]>([]);
   const [history, setHistory] = useState<TestResult[]>([]);
   const [badges, setBadges] = useState<Badge[]>(BADGES);
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
@@ -156,6 +197,7 @@ export default function App() {
   useEffect(() => { currentTextRef.current = currentText; }, [currentText]);
   const endGameRef = useRef<(sd?: boolean) => void>(() => {});
   const inputRef = useRef<HTMLInputElement>(null);
+  const writingAreaRef = useRef<HTMLDivElement>(null);
   const textContainerRef = useRef<HTMLDivElement>(null);
   const examPanelRef = useRef<HTMLDivElement>(null);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -163,6 +205,10 @@ export default function App() {
   const ambientLoopRef = useRef<NodeJS.Timeout | null>(null);
   const paceIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const [paceProgress, setPaceProgress] = useState(0);
+  const keySessionRef = useRef<{ events: KeyPressEvent[]; lastTs: number }>({ events: [], lastTs: 0 });
+  const trainerModeRef = useRef(false);
+  const dedicatedExamRef = useRef<{ exam: ExamText; timerSeconds: number; fullscreen: boolean } | null>(null);
+  const examTimerUnlimitedRef = useRef(false);
 
   useEffect(() => {
     try {
@@ -174,6 +220,19 @@ export default function App() {
         if (data.streak) setStreak(data.streak);
         if (data.lastTestDate) setLastTestDate(data.lastTestDate);
         if (data.settings) setSettings(prev => ({ ...prev, ...data.settings }));
+        setAnalytics((prev) => {
+          const synced = syncLegacyStreak(prev, data.streak || 0, data.lastTestDate || null);
+          const refreshed = refreshStreakForToday(synced.practiceStreak);
+          if (refreshed.currentStreak > 0 && !data.streak) {
+            setStreak(refreshed.currentStreak);
+          }
+          return { ...synced, practiceStreak: refreshed };
+        });
+      } else {
+        setAnalytics((prev) => ({
+          ...prev,
+          practiceStreak: refreshStreakForToday(prev.practiceStreak),
+        }));
       }
     } catch {}
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -450,21 +509,6 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.difficultyFilter, settings.aiTextMode, settings.useCustomText, settings.timeLimit]);
 
-  const updateWordStates = useCallback(() => {
-    const textWords = currentText.trim().split(/\s+/);
-    const states: WordState[] = [];
-    const currentWordIndex = completedWords.length;
-    textWords.forEach((word, index) => {
-      let isCorrect = false, isIncorrect = false, isCurrent = index === currentWordIndex;
-      if (index < completedWords.length) {
-        isCorrect = completedWords[index].isCorrect;
-        isIncorrect = !isCorrect;
-      }
-      states.push({ word, isCorrect, isIncorrect, isCurrent });
-    });
-    setWordStates(states);
-  }, [currentText, completedWords]);
-
   const startPaceIndicator = useCallback(() => {
     if (!settings.usePace || !settings.paceWPM) return;
     const wordsPerSecond = settings.paceWPM / 60;
@@ -499,6 +543,7 @@ export default function App() {
     setCurrentWordInput('');
     setCompletedWords([]);
     completedWordsRef.current = [];
+    keySessionRef.current = { events: [], lastTs: 0 };
     setTimeRemaining(time);
     initialTimeRef.current = time;
     setTimerStarted(false);
@@ -519,9 +564,89 @@ export default function App() {
     if (settings.usePace) startPaceIndicator();
   }, [settings, generateNewText, startAmbientSound, startPaceIndicator]);
 
+  const startTrainerSession = useCallback((config: TrainerConfig) => {
+    trainerModeRef.current = true;
+    dedicatedExamRef.current = null;
+    setDedicatedExamActive(false);
+    const drillText = generateTrainerText(analytics.keyStats, config);
+    setGameState('menu');
+    setTimeout(() => startGameWithTime(config.durationSec, drillText, false), 50);
+  }, [analytics.keyStats, startGameWithTime]);
 
+  const beginDedicatedExamPlay = useCallback(() => {
+    const session = dedicatedExamRef.current;
+    if (!session) return;
+    const unlimited = session.timerSeconds === 0;
+    const time = unlimited ? 36000 : session.timerSeconds;
+    examTimerUnlimitedRef.current = unlimited;
+    setExamTimerUnlimited(unlimited);
+    setDedicatedExamActive(true);
+    setExamMode(false);
+    trainerModeRef.current = false;
+    setPreviousDayChallenge(false);
+    setCurrentText(session.exam.text);
+    setCurrentTextIndex(-3);
+    setCurrentWordInput('');
+    setCompletedWords([]);
+    completedWordsRef.current = [];
+    keySessionRef.current = { events: [], lastTs: 0 };
+    setTimeRemaining(time);
+    initialTimeRef.current = time;
+    setTimerStarted(false);
+    setPaceProgress(0);
+    rhythmRef.current = [];
+    setRhythmData([]);
+    setParticles([]);
+    if (gameLoopRef.current) { clearInterval(gameLoopRef.current); gameLoopRef.current = null; }
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    stopAmbientSound();
+    stopPaceIndicator();
+    setGameState('playing');
+    setTimeout(() => {
+      examPanelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      inputRef.current?.focus();
+    }, 120);
+    if (session.fullscreen) {
+      document.documentElement.requestFullscreen?.().catch(() => {});
+    }
+  }, [stopAmbientSound, stopPaceIndicator]);
 
+  const launchDedicatedExam = useCallback((exam: ExamText, timerMode: ExamTimerMode, fullscreen: boolean) => {
+    dedicatedExamRef.current = {
+      exam,
+      timerSeconds: resolveExamTimerSeconds(exam, timerMode),
+      fullscreen,
+    };
+    trainerModeRef.current = false;
+    setActiveExamTitle(exam.title);
+    setCountdownValue(3);
+    setGameState('exam_countdown');
+  }, []);
 
+  const exitDedicatedExamUi = useCallback(() => {
+    dedicatedExamRef.current = null;
+    setDedicatedExamActive(false);
+    setActiveExamTitle('');
+    examTimerUnlimitedRef.current = false;
+    setExamTimerUnlimited(false);
+    if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+  }, []);
+
+  const recordKeyPress = useCallback((typedChar: string, expectedChar: string | undefined) => {
+    if (!typedChar || gameState !== 'playing') return;
+    const normTyped = typedChar.toLocaleLowerCase('tr-TR');
+    const normExpected = (expectedChar || '').toLocaleLowerCase('tr-TR');
+    const correct = !!expectedChar && normTyped === normExpected;
+    const now = Date.now();
+    const reactionMs = keySessionRef.current.lastTs > 0 ? now - keySessionRef.current.lastTs : 0;
+    keySessionRef.current.lastTs = now;
+    keySessionRef.current.events.push({
+      key: typedChar,
+      correct,
+      reactionMs: Math.min(reactionMs, 5000),
+      timestamp: now,
+    });
+  }, [gameState]);
 
   const endGame = useCallback((suddenDeath: boolean = false) => {
     // Timer'ları hemen temizle
@@ -604,7 +729,21 @@ export default function App() {
       }
     });
 
-    const keyPressesArray: { key: string; correct: number; incorrect: number }[] = [];
+    const keyPressMap = new Map<string, { correct: number; incorrect: number }>();
+    keySessionRef.current.events.forEach((ev) => {
+      const k = normalizeKey(ev.key);
+      if (!k) return;
+      const entry = keyPressMap.get(k) || { correct: 0, incorrect: 0 };
+      if (ev.correct) entry.correct++;
+      else entry.incorrect++;
+      keyPressMap.set(k, entry);
+    });
+    const keyPressesArray = Array.from(keyPressMap.entries()).map(([key, v]) => ({
+      key,
+      correct: v.correct,
+      incorrect: v.incorrect,
+    }));
+    const isTrainerSession = trainerModeRef.current;
     const errorWordsArray = Object.entries(errorWordMap).map(([word, count]) => ({ word, count })).sort((a, b) => b.count - a.count).slice(0, 10);
     const totalChars = correctChars + incorrectChars;
     const accuracy = totalChars > 0 ? Math.round((correctChars / totalChars) * 1000) / 10 : 0;
@@ -614,6 +753,50 @@ export default function App() {
     const wpm = timeInMinutes > 0 ? Math.round((netWords / timeInMinutes)) : 0;
     const passedBarrier = netWords >= 90;
 
+    if (dedicatedExamRef.current) {
+      const session = dedicatedExamRef.current;
+      const completion = computeCompletion(words.length, textWords.length);
+      const avgRx = avgReactionMs(keySessionRef.current.events);
+      const badge = getPerformanceBadge(accuracy, completion);
+      const liveResult: ExamLiveResult = {
+        examId: session.exam.id,
+        examTitle: session.exam.title,
+        category: session.exam.category,
+        difficulty: session.exam.difficulty,
+        wpm,
+        accuracy,
+        mistakes: incorrectChars,
+        totalTypedChars: totalChars,
+        correctChars,
+        incorrectChars,
+        completion,
+        timeSpent: timeElapsed,
+        avgReactionMs: avgRx,
+        badge,
+        netWords,
+        grossWords: words.length,
+      };
+      const updatedExam = recordExamAttempt(examProgress, liveResult);
+      setExamProgress(updatedExam);
+      saveExamProgress(updatedExam);
+      setExamLastResult(liveResult);
+
+      const updatedAnalytics = processSessionEnd(analytics, {
+        events: keySessionRef.current.events,
+        accuracy,
+        wpm,
+        mistakes: incorrectChars,
+        trainerSession: false,
+      });
+      setAnalytics(updatedAnalytics);
+      setStreak(updatedAnalytics.practiceStreak.currentStreak);
+      setLastTestDate(updatedAnalytics.practiceStreak.lastPracticeDate || new Date().toDateString());
+      keySessionRef.current = { events: [], lastTs: 0 };
+      exitDedicatedExamUi();
+      setGameState('exam_finished');
+      return;
+    }
+
     const result: TestResult = {
       date: new Date().toLocaleDateString('tr-TR'), timestamp: Date.now(), textIndex: currentTextIndex,
       netWords, grossWords: words.length, correctChars, incorrectChars, totalChars, accuracy, wpm, passedBarrier,
@@ -621,8 +804,22 @@ export default function App() {
       gameMode: settings.gameMode, aiTextMode: settings.aiTextMode, keyboardType: settings.keyboardType,
       timeLimit: settings.timeLimit, targetWords: settings.targetWords, paceWPM: settings.paceWPM,
       usePace: settings.usePace, useCustomText: settings.useCustomText, theme: settings.theme, blurIntensity: settings.blurIntensity,
-      keyPresses: keyPressesArray, errorWords: errorWordsArray, wordErrorDetails
+      keyPresses: keyPressesArray, errorWords: errorWordsArray, wordErrorDetails,
+      trainerSession: isTrainerSession,
     };
+
+    const updatedAnalytics = processSessionEnd(analytics, {
+      events: keySessionRef.current.events,
+      accuracy,
+      wpm,
+      mistakes: incorrectChars,
+      trainerSession: isTrainerSession,
+    });
+    setAnalytics(updatedAnalytics);
+    setStreak(updatedAnalytics.practiceStreak.currentStreak);
+    setLastTestDate(updatedAnalytics.practiceStreak.lastPracticeDate || new Date().toDateString());
+    trainerModeRef.current = false;
+    keySessionRef.current = { events: [], lastTs: 0 };
 
     const newHistory = [result, ...history.slice(0, 49)];
     setHistory(newHistory);
@@ -639,11 +836,6 @@ export default function App() {
         sudden_death: settings.suddenDeath || suddenDeath,
       }).catch(() => {});
     }
-    const today = new Date().toDateString();
-    const yesterday = new Date(Date.now() - 86400000).toDateString();
-    if (lastTestDate === yesterday) setStreak(s => s + 1);
-    else if (lastTestDate !== today) setStreak(1);
-    setLastTestDate(today);
     checkAndAwardBadges(result);
 
     // Doğru yazılan kelimeleri topla (zayıf listeden çıkarmak için)
@@ -659,25 +851,29 @@ export default function App() {
     if (settings.hardMode) xpGained = Math.floor(xpGained * 1.5);
     if (settings.suddenDeath) xpGained = Math.floor(xpGained * 2);
 
-    // Update profile: weak words, daily log, XP
+    // Update profile: weak words, daily log, XP (trainer oturumları kariyer sayacını etkilemez)
     setProfile(prev => {
-      let updated = updateWeakWords(prev, errorWordsArray, correctWordsList);
-      updated = updateDailyLog(updated, netWords, words.length, wpm, accuracy, timeElapsed, correctChars, totalChars);
+      let updated = isTrainerSession
+        ? prev
+        : updateWeakWords(prev, errorWordsArray, correctWordsList);
+      if (!isTrainerSession) {
+        updated = updateDailyLog(updated, netWords, words.length, wpm, accuracy, timeElapsed, correctChars, totalChars);
+      }
       
       const oldXP = updated.xp || 0;
-      const newXP = oldXP + xpGained;
+      const newXP = isTrainerSession ? oldXP : oldXP + xpGained;
       const oldLevel = Math.floor(oldXP / 200) + 1;
       const newLevel = Math.floor(newXP / 200) + 1;
       updated = { ...updated, xp: newXP };
       
-      // Kariyer modu güncelle
-      const careerResult = updateCareer(updated, netWords, accuracy);
-      updated = careerResult.profile;
-      
-      if (careerResult.promoted && careerResult.newStage) {
-        setCareerPromotion(careerResult.newStage);
-      } else if (newLevel > oldLevel) {
-        setLevelUpData({ show: true, oldLevel, newLevel, xpGained });
+      if (!isTrainerSession) {
+        const careerResult = updateCareer(updated, netWords, accuracy);
+        updated = careerResult.profile;
+        if (careerResult.promoted && careerResult.newStage) {
+          setCareerPromotion(careerResult.newStage);
+        } else if (newLevel > oldLevel) {
+          setLevelUpData({ show: true, oldLevel, newLevel, xpGained });
+        }
       }
       
       saveProfile(updated);
@@ -721,10 +917,19 @@ export default function App() {
       console.error('endGame error:', err);
       setGameState('menu');
     }
-  }, [history, settings, currentTextIndex, lastTestDate, checkAndAwardBadges, stopAmbientSound, stopPaceIndicator]);
+  }, [history, settings, currentTextIndex, analytics, examProgress, checkAndAwardBadges, stopAmbientSound, stopPaceIndicator, exitDedicatedExamUi]);
 
   // endGame ref'i her zaman güncel tutulur
   useEffect(() => { endGameRef.current = endGame; }, [endGame]);
+
+  useEffect(() => {
+    if (gameState !== 'exam_countdown') return;
+    if (countdownValue > 0) {
+      const t = setTimeout(() => setCountdownValue((v) => v - 1), 1000);
+      return () => clearTimeout(t);
+    }
+    beginDedicatedExamPlay();
+  }, [gameState, countdownValue, beginDedicatedExamPlay]);
 
   const startTimerIfNeeded = () => {
     if (timerStarted || gameState !== 'playing') return;
@@ -733,10 +938,11 @@ export default function App() {
     timerRef.current = setInterval(() => {
       setTimeRemaining(prev => {
         const newTime = prev - 1;
-        if (newTime <= 0) {
+        if (newTime <= 0 && !examTimerUnlimitedRef.current) {
           endGameRef.current();
           return 0;
         }
+        if (newTime <= 0 && examTimerUnlimitedRef.current) return 0;
         return newTime;
       });
     }, 1000);
@@ -744,6 +950,15 @@ export default function App() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
+    const prevLen = currentWordInput.length;
+    if (value.length > prevLen && gameState === 'playing') {
+      const typedChar = value[value.length - 1];
+      const textWords = currentTextRef.current.trim().split(/\s+/);
+      const wordIdx = completedWordsRef.current.length;
+      const expectedWord = textWords[wordIdx] || '';
+      const expectedChar = expectedWord[value.length - 1];
+      recordKeyPress(typedChar, expectedChar);
+    }
     if (value.length > 0) startTimerIfNeeded();
     setCurrentWordInput(value);
   };
@@ -766,6 +981,7 @@ export default function App() {
     setCompletedWords(prev => [...prev, entry]);
     completedWordsRef.current = [...completedWordsRef.current, entry];
     setCurrentWordInput('');
+    requestAnimationFrame(() => inputRef.current?.focus());
 
     const elapsed = initialTimeRef.current - timeRemainingRef.current;
     rhythmRef.current = [...rhythmRef.current, {
@@ -774,8 +990,6 @@ export default function App() {
       chars: typed.length,
       correct: isCorrect
     }];
-
-    updateWordStates();
 
     if (mode === 'complete' && (completedWordsRef.current.length) % 10 === 0 && isCorrect && settings.showEffects) {
       const container = textContainerRef.current;
@@ -816,6 +1030,7 @@ export default function App() {
         const ic = normalizeExamWord(currentWordInput.trim()) === normalizeExamWord(cw);
         const entry = { word: currentWordInput.trim(), isCorrect: ic, correctWord: cw, skipped: false };
         completedWordsRef.current = [...completedWordsRef.current, entry];
+        setCompletedWords([...completedWordsRef.current]);
       }
       endGame();
     } else if (gameState === 'playing' && e.key.length === 1) {
@@ -824,39 +1039,27 @@ export default function App() {
   };
 
   useEffect(() => {
-    if (gameState === 'playing') {
-      updateWordStates();
-      if (settings.gameMode && !gameLoopRef.current) {
-        gameLoopRef.current = setInterval(() => {
-          setGameObstacles(prev => {
-            const newObstacles = prev.map(obs => ({ ...obs, x: obs.x - 2 })).filter(obs => obs.x > -50);
-            if (newObstacles.length < 3 && Math.random() > 0.95) {
-              newObstacles.push({ x: 800, type: Math.random() > 0.5 ? 'rock' : 'cactus' });
-            }
-            return newObstacles;
-          });
-        }, 50);
-      }
+    if (gameState === 'playing' && writingAreaRef.current) {
+      writingAreaRef.current.scrollTop = writingAreaRef.current.scrollHeight;
+    }
+  }, [completedWords.length, gameState]);
+
+  useEffect(() => {
+    if (gameState === 'playing' && settings.gameMode && !gameLoopRef.current) {
+      gameLoopRef.current = setInterval(() => {
+        setGameObstacles(prev => {
+          const newObstacles = prev.map(obs => ({ ...obs, x: obs.x - 2 })).filter(obs => obs.x > -50);
+          if (newObstacles.length < 3 && Math.random() > 0.95) {
+            newObstacles.push({ x: 800, type: Math.random() > 0.5 ? 'rock' : 'cactus' });
+          }
+          return newObstacles;
+        });
+      }, 50);
     }
     return () => {
       if (gameLoopRef.current) { clearInterval(gameLoopRef.current); gameLoopRef.current = null; }
     };
-  }, [completedWords, gameState, updateWordStates, settings.gameMode]);
-
-  useEffect(() => {
-    if (gameState === 'playing' && textContainerRef.current) {
-      const currentWordElement = textContainerRef.current.querySelector('[data-current="true"]');
-      if (currentWordElement) {
-        const container = textContainerRef.current;
-        const el = currentWordElement as HTMLElement;
-        const containerRect = container.getBoundingClientRect();
-        const elRect = el.getBoundingClientRect();
-        const elTopInContainer = elRect.top - containerRect.top + container.scrollTop;
-        const targetScroll = elTopInContainer - container.clientHeight / 3;
-        container.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
-      }
-    }
-  }, [wordStates, gameState]);
+  }, [gameState, settings.gameMode]);
 
   // Scroll animasyon observer
   useEffect(() => {
@@ -930,7 +1133,6 @@ export default function App() {
   const coachReport = latestResult ? (() => {
     const originalText = currentText.trim();
     const typedWords = completedWords.map(w => w.skipped ? '' : w.word).filter(Boolean);
-    const typedText = typedWords.join(' ');
     const originalWords = originalText.split(/\s+/).filter(Boolean);
     const skippedWords = completedWords.filter(w => w.skipped).length;
     const errorCount = latestResult.incorrectChars;
@@ -1040,19 +1242,34 @@ export default function App() {
   };
   const theme = themeStyles[settings.theme];
 
-  const getKeyHeatValue = (key: string) => {
-    if (!latestResult) return 0;
-    const keyData = latestResult.keyPresses.find(k => k.key === key.toLowerCase());
-    if (!keyData) return 0;
-    return keyData.incorrect / (keyData.correct + keyData.incorrect);
-  };
+  const practiceStreak = useMemo(
+    () => refreshStreakForToday(analytics.practiceStreak),
+    [analytics.practiceStreak]
+  );
 
-  const getHeatColor = (value: number) => {
-    if (value === 0) return settings.darkMode ? 'bg-slate-700' : 'bg-gray-300';
-    if (value < 0.2) return 'bg-green-500';
-    if (value < 0.5) return 'bg-yellow-500';
-    return 'bg-red-500';
-  };
+  const examSuggestions = useMemo(() => {
+    if (!examLastResult) return [];
+    return generateExamSuggestions(examLastResult, analytics);
+  }, [examLastResult, analytics]);
+
+  const examProgressSummary = useMemo(() => {
+    const completed = new Set(examProgress.history.map((h) => h.examId)).size;
+    return { completed, total: examTexts.length };
+  }, [examProgress.history]);
+
+  const weakestKeyStats = useMemo(() => getWeakestKeys(analytics.keyStats, 5), [analytics.keyStats]);
+
+  const resultSuggestions = useMemo(() => {
+    if (!latestResult) return [];
+    return generateResultSuggestions({
+      accuracy: latestResult.accuracy,
+      wpm: latestResult.wpm,
+      mistakes: latestResult.incorrectChars,
+      incorrectChars: latestResult.incorrectChars,
+      analytics,
+      trainerSession: latestResult.trainerSession,
+    });
+  }, [latestResult, analytics]);
 
   const generateShareImage = useCallback(() => {
     if (!latestResult) return;
@@ -1380,7 +1597,11 @@ export default function App() {
               <div className="flex items-center space-x-3">
                 <div className="px-3 py-1 bg-amber-500/20 text-amber-400 rounded-full text-sm font-semibold">⭐ Lv.{Math.floor((profile.xp || 0) / 200) + 1}</div>
 
-                {streak > 0 && <div className="px-3 py-1 bg-orange-500/20 text-orange-400 rounded-full text-sm font-semibold">🔥 {streak} Gün</div>}
+                {(practiceStreak.currentStreak > 0 || streak > 0) && (
+                  <div className="px-3 py-1 bg-orange-500/20 text-orange-400 rounded-full text-sm font-semibold" title={`En uzun seri: ${practiceStreak.longestStreak} gün`}>
+                    🔥 {Math.max(practiceStreak.currentStreak, streak)} Gün
+                  </div>
+                )}
 
                 <button onClick={() => { if (gameState === 'playing') return; setGameState('career'); }} className={`p-2 rounded-lg ${gameState === 'career' ? 'bg-amber-500' : (settings.darkMode ? 'bg-slate-800 hover:bg-slate-700' : 'bg-gray-200 hover:bg-gray-300')} ${gameState === 'playing' ? 'opacity-50 cursor-not-allowed' : ''}`} title="Kariyer Modu">
                   <svg className={`w-5 h-5 ${gameState === 'career' ? 'text-white' : (settings.darkMode ? 'text-white' : 'text-gray-700')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1395,6 +1616,17 @@ export default function App() {
                 <button onClick={async () => { if (gameState === 'playing') return; setLeaderboardLoading(true); setGameState('leaderboard'); try { const data = await getLeaderboard(leaderboardTab, 50); setLeaderboardData(data); } finally { setLeaderboardLoading(false); } }} className={`p-2 rounded-lg ${gameState === 'leaderboard' ? 'bg-amber-500' : (settings.darkMode ? 'bg-slate-800 hover:bg-slate-700' : 'bg-gray-200 hover:bg-gray-300')} ${gameState === 'playing' ? 'opacity-50 cursor-not-allowed' : ''}`} title="Leaderboard">
                   <svg className={`w-5 h-5 ${gameState === 'leaderboard' ? 'text-white' : (settings.darkMode ? 'text-white' : 'text-gray-700')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-6m3 6V7m3 10v-4m3 8H6a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2v14a2 2 0 01-2 2z" />
+                  </svg>
+                </button>
+                <button onClick={() => { if (gameState === 'playing') return; setGameState('modes_hub'); }} className={`p-2 rounded-lg ${gameState === 'modes_hub' || gameState === 'exam_catalog' ? 'bg-amber-500' : (settings.darkMode ? 'bg-slate-800 hover:bg-slate-700' : 'bg-gray-200 hover:bg-gray-300')} ${gameState === 'playing' ? 'opacity-50 cursor-not-allowed' : ''}`} title="Modlar">
+                  <svg className={`w-5 h-5 ${gameState === 'modes_hub' || gameState === 'exam_catalog' ? 'text-white' : (settings.darkMode ? 'text-white' : 'text-gray-700')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                  </svg>
+                </button>
+                <button onClick={() => { if (gameState === 'playing') return; setGameState('analytics'); }} className={`p-2 rounded-lg ${gameState === 'analytics' ? 'bg-amber-500' : (settings.darkMode ? 'bg-slate-800 hover:bg-slate-700' : 'bg-gray-200 hover:bg-gray-300')} ${gameState === 'playing' ? 'opacity-50 cursor-not-allowed' : ''}`} title="Analitik">
+                  <svg className={`w-5 h-5 ${gameState === 'analytics' ? 'text-white' : (settings.darkMode ? 'text-white' : 'text-gray-700')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
                   </svg>
                 </button>
                 <button onClick={() => { if (gameState === 'playing') return; setGameState('roadmap'); }} className={`p-2 rounded-lg ${gameState === 'roadmap' ? 'bg-amber-500' : (settings.darkMode ? 'bg-slate-800 hover:bg-slate-700' : 'bg-gray-200 hover:bg-gray-300')} ${gameState === 'playing' ? 'opacity-50 cursor-not-allowed' : ''}`} title="Yol Haritası">
@@ -1568,7 +1800,12 @@ export default function App() {
 
             {/* Hızlı İstatistik Şeridi */}
             <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3 fade-up fade-up-2 px-2">
-              {streak > 0 && <div className={`px-3 py-1.5 rounded-full text-xs font-semibold ${settings.darkMode ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' : 'bg-orange-50 text-orange-600 border border-orange-200'}`}>🔥 {streak} gün seri</div>}
+              {(practiceStreak.currentStreak > 0 || streak > 0) && (
+                <div className={`px-3 py-1.5 rounded-full text-xs font-semibold ${settings.darkMode ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' : 'bg-orange-50 text-orange-600 border border-orange-200'}`}>
+                  🔥 {Math.max(practiceStreak.currentStreak, streak)} gün seri
+                  {practiceStreak.todayCompleted && <span className="ml-1">✓</span>}
+                </div>
+              )}
               <div className={`px-3 py-1.5 rounded-full text-xs font-semibold ${settings.darkMode ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-amber-50 text-amber-600 border border-amber-200'}`}>⭐ Seviye {Math.floor((profile.xp || 0) / 200) + 1}</div>
               <div className={`px-3 py-1.5 rounded-full text-xs font-semibold ${settings.darkMode ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-purple-50 text-purple-600 border border-purple-200'}`}>{CAREER_STAGES[Math.min((profile.careerStage || 1) - 1, CAREER_STAGES.length - 1)].icon} {CAREER_STAGES[Math.min((profile.careerStage || 1) - 1, CAREER_STAGES.length - 1)].title}</div>
               {bestWordsAll > 0 && <div className={`px-3 py-1.5 rounded-full text-xs font-semibold ${settings.darkMode ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-green-50 text-green-600 border border-green-200'}`}>🏆 En iyi: {bestWordsAll} kelime</div>}
@@ -1587,7 +1824,7 @@ export default function App() {
             </div>
 
             {/* Diğer Modlar */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-2xl w-full fade-up fade-up-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-3xl w-full fade-up fade-up-4">
               {[
                 { label: 'Isınma', sub: '30 saniye', icon: '🏃', color: 'text-emerald-400', action: () => startGameWithTime(30, undefined, false) },
                 { label: 'Serbest Süre', sub: 'Özel süre', icon: '⏱️', color: 'text-cyan-400', action: () => setShowCustomTime(!showCustomTime) },
@@ -1595,7 +1832,24 @@ export default function App() {
                 { label: 'Dünü Geç', sub: yesterdayResults.length > 0 ? 'Dünün rekorunu kır' : 'Dün skor kaydı yok', icon: '🏁', color: yesterdayResults.length > 0 ? 'text-amber-400' : 'text-slate-400', action: yesterdayResults.length > 0 ? () => startGameWithTime(180, undefined, false, true) : undefined, disabled: yesterdayResults.length === 0 },
                 profile.weakWords.length > 0
                   ? { label: 'Zayıf Nokta', sub: `${profile.weakWords.length} kelime`, icon: '🎯', color: 'text-rose-400', action: () => { const wt = generateWeakWordText(profile.weakWords, 150); startGameWithTime(180, wt, false); } }
-                  : { label: 'Hedef Belirle', sub: 'Plan kur', icon: '📋', color: 'text-violet-400', action: () => setShowGoalModal(true) }
+                  : { label: 'Hedef Belirle', sub: 'Plan kur', icon: '📋', color: 'text-violet-400', action: () => setShowGoalModal(true) },
+                weakestKeyStats.length > 0
+                  ? {
+                      label: 'Zayıf Tuş',
+                      sub: describeTrainerFocus(analytics.keyStats, 'weak'),
+                      icon: '⌨️',
+                      color: 'text-rose-400',
+                      action: () => startTrainerSession({ durationSec: 180, difficulty: 'medium', focus: 'weak' }),
+                    }
+                  : {
+                      label: 'Zayıf Tuş',
+                      sub: 'Önce bir test çöz',
+                      icon: '⌨️',
+                      color: 'text-slate-400',
+                      disabled: true,
+                    },
+                { label: 'Modlar', sub: 'Pratik · Antrenör', icon: '🧭', color: 'text-indigo-400', action: () => setGameState('modes_hub') },
+                { label: 'Sınav Modu', sub: `${examProgressSummary.completed}/${examProgressSummary.total} metin`, icon: '📋', color: 'text-violet-400', action: () => setGameState('exam_catalog') },
               ].map((m, i) => (
                 <button key={i} onClick={m.action} disabled={m.disabled} className={`group relative py-4 px-3 rounded-2xl text-center transition-all card-hover overflow-hidden ${m.disabled ? 'opacity-50 cursor-not-allowed' : ''} ${settings.darkMode ? 'bg-slate-800/60 border border-slate-700/40 hover:border-slate-600' : 'bg-white border border-gray-200 shadow-sm hover:shadow-md'}`}>
                   <span className="block text-2xl mb-1.5 group-hover:scale-110 transition-transform">{m.icon}</span>
@@ -1607,6 +1861,7 @@ export default function App() {
 
             {/* Alt satır */}
             <div className="flex items-center gap-3 flex-wrap justify-center fade-up fade-up-4">
+              <button onClick={() => setGameState('analytics')} className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${settings.darkMode ? 'text-amber-400/80 hover:text-amber-300 hover:bg-amber-500/10' : 'text-amber-600 hover:bg-amber-50'}`}>📊 Analitik</button>
               <button onClick={() => setShowBadges(!showBadges)} className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${settings.darkMode ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-800' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>🏆 Rozetler {badges.filter(b => b.earned).length}/{badges.length}</button>
               <button onClick={() => setShowGoalModal(!showGoalModal)} className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${settings.darkMode ? 'text-slate-500 hover:text-slate-300 hover:bg-slate-800' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>📋 Hedef</button>
             </div>
@@ -1815,7 +2070,7 @@ export default function App() {
         )}
 
         {gameState === 'playing' && (
-          <div className="space-y-4">
+          <div className={`space-y-2 ${!settings.zenMode ? 'pb-20' : 'pb-4'}`}>
             {settings.gameMode && (
               <div className={`${settings.darkMode ? 'bg-slate-800/80' : 'bg-white'} ${settings.darkMode ? 'border-slate-600' : 'border-gray-300'} border-2 rounded-xl p-4`}>
                 <div className={`text-xs font-semibold mb-2 ${theme.textMuted}`}>🎮 OYUN MODU</div>
@@ -1852,101 +2107,130 @@ export default function App() {
                 <div className="text-xs text-amber-200 mt-1">Dünün en iyi testi: {yesterdayBestWords} kelime / {yesterdayBestChars} doğru karakter.</div>
               </div>
             )}
-            
-            <div ref={examPanelRef} className={`grid grid-cols-1 md:grid-cols-[1.2fr_0.9fr_auto] gap-3 p-3 rounded-2xl ${settings.darkMode ? 'bg-slate-900/70 border-slate-700/70' : 'bg-white border-gray-200'} border shadow-sm`}>
-              <div className={`rounded-xl px-4 py-3 ${settings.darkMode ? 'bg-slate-800/70' : 'bg-gray-50'}`}>
-                <div className={`text-[11px] uppercase tracking-[0.18em] mb-2 ${theme.textMuted}`}>Sınav Paneli</div>
-                <div className="flex flex-wrap items-center gap-2">
-                  {examMode && <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">Sınav Tadında</span>}
-                  {settings.hardMode && <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-purple-500/15 text-purple-400 border border-purple-500/20">Blur Modu</span>}
-                  {settings.suddenDeath && <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-red-500/15 text-red-400 border border-red-500/20">Sudden Death</span>}
-                  {!examMode && !settings.hardMode && !settings.suddenDeath && <span className={`text-sm font-medium ${theme.text}`}>Standart akış aktif</span>}
-                </div>
+            {dedicatedExamActive && (
+              <div className="px-4 py-3 bg-indigo-500/15 border border-indigo-500/30 rounded-lg text-center">
+                <div className="text-sm font-semibold text-indigo-300">📋 Sınav Modu — {activeExamTitle}</div>
+                <div className="text-xs text-indigo-200/80 mt-1">Sabit metin · karıştırma kapalı · antrenman enjeksiyonu yok</div>
               </div>
+            )}
 
-              <div className={`rounded-xl px-4 py-3 ${settings.darkMode ? 'bg-slate-800/70' : 'bg-gray-50'}`}>
-                <div className={`text-[11px] uppercase tracking-[0.18em] mb-2 ${theme.textMuted}`}>Oturum Bilgisi</div>
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <div className={`text-[11px] ${theme.textMuted}`}>Klavye</div>
-                    <div className={`text-base font-semibold ${theme.text}`}>{settings.keyboardType}</div>
-                  </div>
-                  <div className={`w-px self-stretch ${settings.darkMode ? 'bg-slate-700' : 'bg-gray-200'}`} />
-                  <div>
-                    <div className={`text-[11px] ${theme.textMuted}`}>Metin</div>
-                    <div className={`text-base font-semibold ${theme.text}`}>{settings.difficultyFilter === 'easy' ? 'Kolay' : settings.difficultyFilter === 'medium' ? 'Orta' : settings.difficultyFilter === 'hard' ? 'Zor' : 'Karışık'}</div>
-                  </div>
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+              <div ref={examPanelRef} className={`flex-1 min-w-0 ${settings.darkMode ? 'bg-slate-800/80' : 'bg-white'} ${settings.darkMode ? 'border-slate-600/80' : 'border-gray-300'} border rounded-xl p-3 md:p-4`}>
+                <div className={`flex items-center justify-between gap-2 mb-2 ${settings.zenMode ? 'mb-1' : ''}`}>
+                  {!settings.zenMode ? (
+                    <div className={`text-xs font-semibold ${theme.textMuted} flex items-center min-w-0 flex-1`}>
+                      <svg className="w-4 h-4 mr-2 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                      <span className="truncate">REFERANS METİN {settings.aiTextMode && '(🤖 AI)'} {settings.useCustomText && '(📝 Özel)'}</span>
+                    </div>
+                  ) : <div className="flex-1" />}
+                  {!settings.zenMode && !timerStarted && !dedicatedExamActive && (
+                    <button onClick={() => { const words = currentText.split(/\s+/); for (let j = words.length - 1; j > 0; j--) { const k = Math.floor(Math.random() * (j + 1)); [words[j], words[k]] = [words[k], words[j]]; } setCurrentText(words.join(' ')); setCompletedWords([]); setCurrentWordInput(''); }} className={`px-2 py-1 rounded text-xs transition-colors shrink-0 ${settings.darkMode ? 'bg-slate-700 hover:bg-slate-600 text-slate-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`} title="Kelimeleri karıştır">
+                      🔀
+                    </button>
+                  )}
                 </div>
-              </div>
-
-              <div className={`rounded-xl px-5 py-3 min-w-[150px] ${settings.darkMode ? 'bg-gradient-to-br from-slate-800 to-slate-900 border-slate-700' : 'bg-gradient-to-br from-gray-50 to-white border-gray-200'} border text-center`}>
-                <div className={`text-[11px] uppercase tracking-[0.18em] mb-2 ${theme.textMuted}`}>Kalan Süre</div>
-                <div className={`text-4xl md:text-5xl font-mono font-bold leading-none tabular-nums ${timeRemaining < 30 ? 'text-red-500 animate-pulse' : 'text-amber-400'}`}>{formatTime(timeRemaining)}</div>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-4">
-              <div className={`${settings.darkMode ? 'bg-slate-800/80' : 'bg-white'} ${settings.darkMode ? 'border-slate-600' : 'border-gray-300'} border-2 rounded-xl p-6 min-h-[280px]`}>
-                {!settings.zenMode && <div className={`text-xs font-semibold mb-3 ${theme.textMuted} flex items-center justify-between`}>
-                  <div className="flex items-center">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                    REFERANS METİN {settings.aiTextMode && '(🤖 AI)'} {settings.useCustomText && '(📝 Özel)'}
-                  </div>
-                  {!timerStarted && <button onClick={() => { const words = currentText.split(/\s+/); for (let j = words.length - 1; j > 0; j--) { const k = Math.floor(Math.random() * (j + 1)); [words[j], words[k]] = [words[k], words[j]]; } setCurrentText(words.join(' ')); setCompletedWords([]); setCurrentWordInput(''); }} className={`px-2 py-1 rounded text-xs transition-colors ${settings.darkMode ? 'bg-slate-700 hover:bg-slate-600 text-slate-300' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`} title="Kelimeleri karıştır">
-                    🔀 Karıştır
-                  </button>}
-                </div>}
-                <div ref={textContainerRef} className="leading-relaxed font-mono max-h-[240px] overflow-y-auto" style={{ fontSize: `${settings.fontSize}px`, lineHeight: settings.lineHeight }}>
-                  {wordStates.map((state, index) => (
-                    <span key={index} data-current={state.isCurrent} className={`inline-block mx-1 px-2 py-1 rounded transition-all duration-150 ${(state.isCorrect || state.isIncorrect) ? (settings.darkMode ? 'text-slate-600' : 'text-gray-400') : state.isCurrent ? 'bg-blue-500 text-white font-bold scale-105 shadow-lg shadow-blue-500/50' : settings.darkMode ? 'text-slate-500' : 'text-gray-400'}`}>
-                      {state.word}
-                    </span>
-                  ))}
+                <div ref={textContainerRef} className={`leading-loose font-mono min-h-[10rem] max-h-[calc(100vh-13.5rem)] sm:max-h-[calc(100vh-12.5rem)] overflow-y-auto whitespace-pre-wrap px-3 py-3 ${settings.darkMode ? 'text-slate-200' : 'text-gray-800'}`} style={{ fontSize: `${settings.fontSize}px`, lineHeight: Math.max(settings.lineHeight, 1.88) }}>
+                  {currentText}
                   {particles.map(p => (
                     <div key={p.id} className="fixed w-2 h-2 rounded-full animate-ping" style={{ left: p.x, top: p.y, backgroundColor: p.color }} />
                   ))}
                 </div>
               </div>
-              <div className={`${settings.darkMode ? 'bg-slate-800/80' : 'bg-white'} ${settings.darkMode ? 'border-slate-600' : 'border-gray-300'} border-2 rounded-xl p-6 min-h-[180px]`}>
-                {!settings.zenMode && <div className={`text-xs font-semibold mb-3 ${theme.textMuted} flex items-center justify-between`}>
-                  <div className="flex items-center">
+
+              <div className="flex justify-end sm:justify-center shrink-0 sm:self-center sm:sticky sm:top-20 px-0 sm:px-1">
+                <div
+                  className={`rounded-lg border px-2.5 py-1 text-center min-w-[4.5rem] ${settings.darkMode ? 'bg-slate-950/90 border-amber-500/45' : 'bg-amber-50 border-amber-400/50'}`}
+                  aria-live="polite"
+                  aria-label={`Kalan süre ${examTimerUnlimited ? 'sınırsız' : formatTime(timeRemaining)}`}
+                >
+                  <div className={`text-[8px] uppercase tracking-wide font-semibold leading-none ${settings.darkMode ? 'text-amber-200/90' : 'text-amber-900/90'}`}>Süre</div>
+                  <div className={`text-xl sm:text-2xl font-mono font-bold leading-tight tabular-nums ${timeRemaining < 30 && !examTimerUnlimited ? 'text-red-400 animate-pulse' : 'text-amber-400'}`}>{examTimerUnlimited ? '∞' : formatTime(timeRemaining)}</div>
+                </div>
+              </div>
+            </div>
+
+            <div className={`${settings.darkMode ? 'bg-slate-800/90 border-amber-500/40 ring-2 ring-amber-500/25' : 'bg-white border-amber-400/50 ring-2 ring-amber-400/20'} border-2 rounded-xl p-2.5 md:p-3 shadow-lg ${settings.darkMode ? 'shadow-black/40' : 'shadow-amber-500/10'}`}>
+                {!settings.zenMode && <div className={`text-xs font-semibold mb-1 ${theme.textMuted} flex items-center justify-between`}>
+                  <div className="flex items-center text-amber-400/90">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                     YAZIM ALANI
                   </div>
-                  {settings.hardMode && <div className="flex items-center text-purple-400">🎯 ZOR MOD ({settings.blurIntensity}px blur)</div>}
-                  {capsLockOn && <div className="flex items-center text-red-400 font-semibold">⚠️ CAPSLOCK</div>}
-                  {examMode && <div className="flex items-center text-emerald-400 font-semibold">🎓 SINAV</div>}
+                  {settings.hardMode && <div className="flex items-center text-purple-400 text-[11px]">🎯 ZOR MOD ({settings.blurIntensity}px blur)</div>}
+                  {capsLockOn && <div className="flex items-center text-red-400 font-semibold text-[11px]">⚠️ CAPSLOCK</div>}
+                  {examMode && !dedicatedExamActive && <div className="flex items-center text-emerald-400 font-semibold text-[11px]">🎓 SINAV</div>}
+                  {dedicatedExamActive && <div className="flex items-center text-indigo-400 font-semibold text-[11px]">📋 SINAV MODU</div>}
                 </div>}
-                <div className={`relative h-[100px] rounded-lg ${settings.darkMode ? 'bg-slate-900' : 'bg-gray-100'} border-2 ${settings.darkMode ? 'border-slate-600' : 'border-gray-300'}`}>
-                  <input ref={inputRef} type="text" value={currentWordInput} onChange={handleInputChange} onKeyDown={handleKeyDown} className={`w-full h-full px-4 text-2xl font-mono bg-transparent outline-none ${settings.darkMode ? 'text-white placeholder-slate-600' : 'text-gray-900 placeholder-gray-400'}`} style={settings.hardMode && currentWordInput.length > 0 ? { filter: `blur(${settings.blurIntensity}px)` } : undefined} placeholder="Kelimeyi buraya yazın ve BOŞLUK tuşuna basın..." autoFocus autoComplete="off" autoCorrect="off" autoCapitalize="off" spellCheck="false" />
-                  {settings.hardMode && currentWordInput.length > 0 && <div className="absolute bottom-2 right-4 text-xs text-purple-400">👁️ Bulanık Mod</div>}
+                <div
+                  ref={writingAreaRef}
+                  role="textbox"
+                  aria-label="Yazım alanı"
+                  onClick={() => inputRef.current?.focus()}
+                  className={`relative min-h-[4.25rem] max-h-[8.5rem] overflow-y-auto rounded-lg transition-shadow focus-within:ring-2 focus-within:ring-amber-400/80 focus-within:border-amber-400 ${settings.darkMode ? 'bg-slate-950 border-slate-600' : 'bg-gray-50 border-gray-300'} border-2`}
+                >
+                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1.5 px-3 py-2 min-h-[4.25rem]">
+                    {completedWords.map((entry, index) => {
+                      const display = entry.skipped && !entry.word ? '—' : entry.word || '—';
+                      const tokenClass = entry.skipped
+                        ? (settings.darkMode ? 'text-red-400/45' : 'text-red-500/50')
+                        : entry.isCorrect
+                        ? (settings.darkMode ? 'text-sky-300/50' : 'text-sky-600/55')
+                        : (settings.darkMode ? 'text-red-400/55' : 'text-red-500/60');
+                      return (
+                        <span
+                          key={index}
+                          className={`font-mono text-xl sm:text-2xl leading-snug select-none opacity-50 scale-[0.98] transition-[opacity,color] duration-200 ${tokenClass}`}
+                        >
+                          {display}
+                        </span>
+                      );
+                    })}
+                    <span className="inline-flex items-baseline max-w-full">
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        value={currentWordInput}
+                        onChange={handleInputChange}
+                        onKeyDown={handleKeyDown}
+                        size={Math.max(4, currentWordInput.length + 2)}
+                        className={`font-mono text-xl sm:text-2xl leading-snug bg-transparent outline-none border-b-2 border-amber-400/90 max-w-full min-w-[3ch] ${settings.darkMode ? 'text-white caret-amber-400' : 'text-gray-900 caret-amber-600'} ${completedWords.length === 0 ? (settings.darkMode ? 'placeholder:text-slate-500' : 'placeholder:text-gray-400') : ''}`}
+                        style={settings.hardMode && currentWordInput.length > 0 ? { filter: `blur(${settings.blurIntensity}px)` } : undefined}
+                        placeholder={completedWords.length === 0 ? 'Kelimeyi buraya yazın…' : ''}
+                        autoFocus
+                        autoComplete="off"
+                        autoCorrect="off"
+                        autoCapitalize="off"
+                        spellCheck={false}
+                      />
+                    </span>
+                  </div>
+                  {settings.hardMode && currentWordInput.length > 0 && <div className="absolute bottom-2 right-4 text-xs text-purple-400 pointer-events-none">👁️ Bulanık Mod</div>}
                 </div>
-                {!settings.zenMode && <div className={`mt-3 text-xs ${theme.textMuted} flex flex-wrap items-center gap-4`}>
-                  <span className="flex items-center"><kbd className={`px-2 py-1 rounded font-mono text-xs mr-2 ${settings.darkMode ? 'bg-slate-700 text-slate-300' : 'bg-gray-200 text-gray-700'}`}>Space</kbd>Tamamla</span>
-                  <span className="flex items-center"><kbd className={`px-2 py-1 rounded font-mono text-xs mr-2 ${settings.darkMode ? 'bg-slate-700 text-slate-300' : 'bg-gray-200 text-gray-700'}`}>Enter</kbd>Kelime Atla</span>
-                  <span className="flex items-center"><kbd className={`px-2 py-1 rounded font-mono text-xs mr-2 ${settings.darkMode ? 'bg-slate-700 text-slate-300' : 'bg-gray-200 text-gray-700'}`}>Tab</kbd>Bitir</span>
+                {!settings.zenMode && <div className={`mt-1 text-[11px] ${theme.textMuted} flex flex-wrap items-center gap-2`}>
+                  <span className="flex items-center"><kbd className={`px-1.5 py-0.5 rounded font-mono text-[10px] mr-1 ${settings.darkMode ? 'bg-slate-700 text-slate-300' : 'bg-gray-200 text-gray-700'}`}>Space</kbd>Tamamla</span>
+                  <span className="flex items-center"><kbd className={`px-1.5 py-0.5 rounded font-mono text-[10px] mr-1 ${settings.darkMode ? 'bg-slate-700 text-slate-300' : 'bg-gray-200 text-gray-700'}`}>Enter</kbd>Atla</span>
+                  <span className="flex items-center"><kbd className={`px-1.5 py-0.5 rounded font-mono text-[10px] mr-1 ${settings.darkMode ? 'bg-slate-700 text-slate-300' : 'bg-gray-200 text-gray-700'}`}>Tab</kbd>Bitir</span>
                 </div>}
-              </div>
             </div>
-            {!settings.zenMode && <div className={`${settings.darkMode ? 'bg-slate-800/30' : 'bg-gray-100'} ${settings.darkMode ? 'border-slate-700' : 'border-gray-200'} border rounded-lg p-3`}>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center space-x-4">
-                  <span className={`flex items-center ${theme.textMuted}`}><span className="w-3 h-3 bg-green-500 rounded-full mr-2"></span>Doğru</span>
-                  <span className={`flex items-center ${theme.textMuted}`}><span className="w-3 h-3 bg-red-500 rounded-full mr-2"></span>Yanlış</span>
-                  <span className={`flex items-center ${theme.textMuted}`}><span className="w-3 h-3 bg-blue-500 rounded-full mr-2"></span>Aktif</span>
-                </div>
-                <button onClick={() => {
+            {!settings.zenMode && (
+              <button
+                type="button"
+                onClick={() => {
                   if (currentWordInput.trim().length > 0) {
                     const tw = currentText.trim().split(/\s+/);
                     const ci = completedWordsRef.current.length;
                     const cw = tw[ci] || '';
                     const ic = normalizeExamWord(currentWordInput.trim()) === normalizeExamWord(cw);
-                    completedWordsRef.current = [...completedWordsRef.current, { word: currentWordInput.trim(), isCorrect: ic, correctWord: cw }];
+                    const entry = { word: currentWordInput.trim(), isCorrect: ic, correctWord: cw };
+                    completedWordsRef.current = [...completedWordsRef.current, entry];
+                    setCompletedWords([...completedWordsRef.current]);
                   }
                   endGame();
-                }} className={`px-4 py-2 rounded-lg transition-colors ${settings.darkMode ? 'bg-red-500/20 hover:bg-red-500/30 text-red-400' : 'bg-red-100 hover:bg-red-200 text-red-600'}`}>Testi Bitir</button>
-              </div>
-            </div>}
+                }}
+                className={`fixed bottom-4 right-4 z-50 px-6 py-3 rounded-xl font-bold text-sm font-mono tracking-wide shadow-xl transition-all hover:scale-[1.02] active:scale-[0.98] ${settings.darkMode ? 'bg-red-600 hover:bg-red-500 text-white shadow-red-900/40 ring-2 ring-red-400/30' : 'bg-red-600 hover:bg-red-500 text-white shadow-red-500/30 ring-2 ring-red-400/25'}`}
+              >
+                Testi Bitir
+              </button>
+            )}
           </div>
         )}
 
@@ -2081,25 +2365,30 @@ export default function App() {
                   </div>
                 </div>
               </div>
-              {latestResult && latestResult.keyPresses.length > 0 && (
+              {(Object.keys(analytics.keyStats).length > 0 || (latestResult && latestResult.keyPresses.length > 0)) && (
                 <div className={`${settings.darkMode ? 'bg-slate-700/50' : 'bg-gray-100'} rounded-lg p-4 mb-8`}>
                   <h3 className={`font-semibold mb-3 flex items-center ${theme.text}`}>
                     <svg className="w-5 h-5 mr-2 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" /></svg>
                     Klavye Isı Haritası
                   </h3>
-                  <div className="flex justify-center">
-                    <div className="space-y-1">
-                      {keyboardLayout.map((row, rowIndex) => (
-                        <div key={rowIndex} className="flex justify-center space-x-1">
-                          {row.map((key) => {
-                            const heatValue = getKeyHeatValue(key);
-                            return <div key={key} className={`w-10 h-8 rounded flex items-center justify-center text-xs font-mono ${getHeatColor(heatValue)} ${settings.darkMode ? 'text-white' : 'text-gray-900'}`} title={`${key}: ${Math.round(heatValue * 100)}% hata`}>{key.length > 6 ? key.substring(0, 3) : key}</div>;
-                          })}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  <KeyboardHeatmap
+                    layout={keyboardLayout}
+                    keyStats={analytics.keyStats}
+                    darkMode={settings.darkMode}
+                    mode="weakness"
+                  />
                 </div>
+              )}
+
+              {gameState === 'finished' && resultSuggestions.length > 0 && (
+                <ResultSuggestions
+                  suggestions={resultSuggestions}
+                  darkMode={settings.darkMode}
+                  themeText={theme.text}
+                  themeMuted={theme.textMuted}
+                  onTrainer={() => startTrainerSession({ durationSec: 60, difficulty: 'medium', focus: 'weak' })}
+                  onAnalytics={() => setGameState('analytics')}
+                />
               )}
               {/* Ritim Grafiği */}
               {rhythmData.length > 2 && (
@@ -2312,6 +2601,25 @@ export default function App() {
           </div>
         )}
 
+        {gameState === 'analytics' && (
+          <div className="space-y-6 max-w-4xl mx-auto">
+            <AnalyticsPanel
+              analytics={analytics}
+              keyboardLayout={keyboardLayout}
+              darkMode={settings.darkMode}
+              theme={theme}
+              onStartTrainer={startTrainerSession}
+            />
+            <button
+              type="button"
+              onClick={() => setGameState('menu')}
+              className={`w-full py-3 rounded-xl font-semibold ${settings.darkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-900'}`}
+            >
+              ← Ana Menü
+            </button>
+          </div>
+        )}
+
         {gameState === 'profile' && (
           <div className="space-y-6 max-w-4xl mx-auto">
             {/* Profil Hero */}
@@ -2367,6 +2675,36 @@ export default function App() {
                   <div className={`text-xs ${theme.textMuted}`}>{stat.label}</div>
                 </div>
               ))}
+            </div>
+
+            <div className={`${theme.cardBg} ${theme.border} border rounded-xl p-6`}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className={`text-lg font-semibold ${theme.text}`}>📊 Tuş Analitiği</h3>
+                <button
+                  type="button"
+                  onClick={() => setGameState('analytics')}
+                  className="text-xs px-3 py-1.5 rounded-lg bg-amber-500/20 text-amber-400 font-semibold hover:bg-amber-500/30"
+                >
+                  Paneli Aç
+                </button>
+              </div>
+              <div className="grid grid-cols-3 gap-3 text-center mb-4">
+                <div>
+                  <div className="text-xl font-bold text-orange-400">{practiceStreak.currentStreak}</div>
+                  <div className={`text-xs ${theme.textMuted}`}>Seri</div>
+                </div>
+                <div>
+                  <div className="text-xl font-bold text-rose-400">{Object.keys(analytics.keyStats).length}</div>
+                  <div className={`text-xs ${theme.textMuted}`}>İzlenen tuş</div>
+                </div>
+                <div>
+                  <div className="text-xl font-bold text-green-400">{practiceStreak.longestStreak}</div>
+                  <div className={`text-xs ${theme.textMuted}`}>En uzun seri</div>
+                </div>
+              </div>
+              {Object.keys(analytics.keyStats).length > 0 && (
+                <KeyboardHeatmap layout={keyboardLayout} keyStats={analytics.keyStats} darkMode={settings.darkMode} mode="weakness" />
+              )}
             </div>
 
             {/* Günlük Takip */}
@@ -2440,7 +2778,7 @@ export default function App() {
               <h3 className={`text-lg font-semibold mb-4 ${theme.text}`}>💾 Veri Yönetimi</h3>
               <div className="flex flex-wrap gap-3">
                 <button onClick={() => {
-                  const allData = { profile, history, badges, streak, lastTestDate, settings };
+                  const allData = { profile, history, badges, streak, lastTestDate, settings, analytics, examProgress };
                   const blob = new Blob([JSON.stringify(allData, null, 2)], { type: 'application/json' });
                   const a = document.createElement('a');
                   a.href = URL.createObjectURL(blob);
@@ -2464,6 +2802,14 @@ export default function App() {
                         if (data.streak) setStreak(data.streak);
                         if (data.lastTestDate) setLastTestDate(data.lastTestDate);
                         if (data.settings) setSettings(data.settings);
+                        if (data.analytics) {
+                          setAnalytics(data.analytics);
+                          saveAnalytics(data.analytics);
+                        }
+                        if (data.examProgress) {
+                          setExamProgress(data.examProgress);
+                          saveExamProgress(data.examProgress);
+                        }
                         alert('Veriler başarıyla yüklendi!');
                       } catch { alert('Dosya okunamadı!'); }
                     };
@@ -2478,6 +2824,65 @@ export default function App() {
 
             <button onClick={() => setGameState('menu')} className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl">← Ana Menüye Dön</button>
           </div>
+        )}
+
+        {gameState === 'exam_countdown' && dedicatedExamRef.current && (
+          <ExamCountdown
+            value={countdownValue}
+            examTitle={dedicatedExamRef.current.exam.title}
+            onComplete={() => {}}
+          />
+        )}
+
+        {gameState === 'modes_hub' && (
+          <div className="py-4">
+            <ModesHub
+              theme={theme}
+              darkMode={settings.darkMode}
+              completedExams={examProgressSummary.completed}
+              totalExams={examProgressSummary.total}
+              onPractice={() => setGameState('menu')}
+              onTrainer={() => setGameState('analytics')}
+              onExam={() => setGameState('exam_catalog')}
+            />
+            <button
+              type="button"
+              onClick={() => setGameState('menu')}
+              className={`mt-6 w-full max-w-2xl mx-auto block py-3 rounded-xl font-semibold ${settings.darkMode ? 'bg-slate-700 text-white' : 'bg-gray-200'}`}
+            >
+              ← Ana Menü
+            </button>
+          </div>
+        )}
+
+        {gameState === 'exam_catalog' && (
+          <ExamCatalog
+            exams={examTexts}
+            progress={examProgress}
+            theme={theme}
+            darkMode={settings.darkMode}
+            onBack={() => setGameState('menu')}
+            onStart={launchDedicatedExam}
+          />
+        )}
+
+        {gameState === 'exam_finished' && examLastResult && (
+          <ExamResultScreen
+            result={examLastResult}
+            suggestions={examSuggestions}
+            theme={theme}
+            darkMode={settings.darkMode}
+            onRetry={() => {
+              const exam = examTexts.find((e) => e.id === examLastResult.examId);
+              if (exam) launchDedicatedExam(exam, 'auto', false);
+            }}
+            onCatalog={() => setGameState('exam_catalog')}
+            onMenu={() => { exitDedicatedExamUi(); setGameState('menu'); }}
+            onTrainer={() => {
+              setGameState('analytics');
+              startTrainerSession({ durationSec: 60, difficulty: 'medium', focus: 'weak' });
+            }}
+          />
         )}
 
         {gameState === 'exam_setup' && (
