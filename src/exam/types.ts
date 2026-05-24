@@ -1,4 +1,8 @@
+import type { ExamWordResult } from './wordTracking';
+
 export type PerformanceBadge = 'excellent' | 'good' | 'average' | 'needs_work';
+
+export type { ExamWordResult, ExamWordOutcome } from './wordTracking';
 
 export interface ExamHistoryEntry {
   examId: string;
@@ -48,6 +52,10 @@ export interface ExamLiveResult {
   badge: PerformanceBadge;
   netWords: number;
   grossWords: number;
+  wordResults: ExamWordResult[];
+  correctWordCount: number;
+  wrongWordCount: number;
+  skippedWordCount: number;
 }
 
 export type ExamTimerMode = 'auto' | 60 | 180 | 300 | 0;

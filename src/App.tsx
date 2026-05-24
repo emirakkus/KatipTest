@@ -35,11 +35,15 @@ import {
   type ExamLiveResult,
   type ExamProgressStore,
   type ExamTimerMode,
+  buildExamWordResultsFromSession,
+  summarizeWordResults,
+  type ExamWordResult,
 } from './exam';
 import { ModesHub } from './components/exam/ModesHub';
 import { ExamCatalog } from './components/exam/ExamCatalog';
 import { ExamCountdown } from './components/exam/ExamCountdown';
 import { ExamResultScreen } from './components/exam/ExamResultScreen';
+import { ExamWrongWordsPanel } from './components/exam/ExamWrongWordsPanel';
 
 
 const PENDING_SIGNUP_NAME_KEY = 'katiptest_pending_signup_name';
@@ -60,6 +64,7 @@ interface TestResult {
   keyPresses: { key: string; correct: number; incorrect: number }[];
   errorWords: { word: string; count: number }[];
   wordErrorDetails?: { expected: string; typed: string; errorType: string; charErrors: number }[];
+  examWordResults?: ExamWordResult[];
   trainerSession?: boolean;
 }
 interface Badge { id: string; name: string; description: string; icon: string; earned: boolean; earnedDate?: string; }
@@ -220,6 +225,16 @@ export default function App() {
   const trainerModeRef = useRef(false);
   const dedicatedExamRef = useRef<{ exam: ExamText; timerSeconds: number; fullscreen: boolean } | null>(null);
   const examTimerUnlimitedRef = useRef(false);
+
+  const hideExamHeader =
+    gameState === 'modes_hub' ||
+    gameState === 'exam_setup' ||
+    gameState === 'exam_countdown' ||
+    gameState === 'exam_finished' ||
+    gameState === 'exam_catalog' ||
+    (gameState === 'finished' && examMode) ||
+    (gameState === 'playing' && (examMode || dedicatedExamActive));
+  const examFocusMode = gameState === 'playing' && (examMode || dedicatedExamActive);
 
   useEffect(() => {
     try {
@@ -809,6 +824,10 @@ export default function App() {
     const timeInMinutes = timeElapsed / 60;
     const wpm = timeInMinutes > 0 ? Math.round((netWords / timeInMinutes)) : 0;
     const passedBarrier = netWords >= 90;
+    const wordResults = examSession
+      ? buildExamWordResultsFromSession(words, textWords, text)
+      : [];
+    const wordSummary = summarizeWordResults(wordResults);
 
     if (dedicatedExamRef.current) {
       const session = dedicatedExamRef.current;
@@ -832,6 +851,10 @@ export default function App() {
         badge,
         netWords,
         grossWords: words.length,
+        wordResults,
+        correctWordCount: wordSummary.correct,
+        wrongWordCount: wordSummary.wrong,
+        skippedWordCount: wordSummary.skipped,
       };
       const updatedExam = recordExamAttempt(examProgress, liveResult);
       setExamProgress(updatedExam);
@@ -862,6 +885,7 @@ export default function App() {
       timeLimit: settings.timeLimit, targetWords: settings.targetWords, paceWPM: settings.paceWPM,
       usePace: settings.usePace, useCustomText: settings.useCustomText, theme: settings.theme, blurIntensity: settings.blurIntensity,
       keyPresses: keyPressesArray, errorWords: errorWordsArray, wordErrorDetails,
+      examWordResults: examSession ? wordResults : undefined,
       trainerSession: isTrainerSession,
     };
 
@@ -1689,7 +1713,7 @@ export default function App() {
         </div>
       )}
 
-      {!settings.zenMode && (
+      {!settings.zenMode && !hideExamHeader && (
         <header className={`${settings.darkMode ? 'bg-slate-950 border-slate-700' : 'bg-white border-gray-200'} border-b`}>
           <div className="max-w-6xl mx-auto px-4 py-3">
             <div className="flex items-center justify-between">
@@ -1778,7 +1802,7 @@ export default function App() {
 
 
 
-      <main className={`${gameState === 'landing' ? 'w-full' : 'max-w-6xl mx-auto px-4 py-6'} ${settings.zenMode ? 'min-h-screen' : ''}`}>
+      <main className={`${gameState === 'landing' ? 'w-full' : hideExamHeader ? 'max-w-4xl mx-auto px-3 py-2 min-h-screen' : 'max-w-6xl mx-auto px-4 py-6'} ${settings.zenMode && !hideExamHeader ? 'min-h-screen' : ''}`}>
         {gameState === 'landing' && (
           <div className="min-h-[90vh] flex flex-col w-screen relative left-1/2 -translate-x-1/2">
             {/* Hero */}
@@ -2176,7 +2200,132 @@ export default function App() {
         )}
 
         {gameState === 'playing' && (
-          <div className={`space-y-2 ${!settings.zenMode ? 'pb-20' : 'pb-4'}`}>
+          <div className={examFocusMode ? 'flex flex-col gap-2 min-h-[calc(100vh-0.75rem)]' : `space-y-2 ${!settings.zenMode ? 'pb-20' : 'pb-4'}`}>
+            {examFocusMode ? (
+              <>
+                <div className="flex flex-row items-start gap-2 sm:gap-3 flex-1 min-h-0">
+                  <div
+                    ref={examPanelRef}
+                    className={`flex-1 min-w-0 flex flex-col rounded-xl border ${
+                      settings.darkMode ? 'bg-slate-900/95 border-slate-700' : 'bg-white border-gray-200'
+                    }`}
+                  >
+                    <div className={`text-[10px] uppercase tracking-wider font-semibold px-3 pt-2 pb-0.5 ${theme.textMuted}`}>
+                      Referans Metin
+                    </div>
+                    <div
+                      ref={textContainerRef}
+                      className={`font-mono flex-1 min-h-0 overflow-y-auto px-3 pb-2 leading-relaxed tracking-wide ${
+                        settings.darkMode ? 'text-slate-200' : 'text-gray-800'
+                      }`}
+                      style={{
+                        fontSize: `${referenceFontSize}px`,
+                        lineHeight: REFERENCE_LINE_HEIGHT,
+                        maxHeight: 'calc(100vh - 8rem)',
+                      }}
+                    >
+                      {currentText}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 self-start sticky top-0 pt-1">
+                    <AlarmClockTimer
+                      seconds={timeRemaining}
+                      totalSeconds={initialTimeRef.current}
+                      unlimited={examTimerUnlimited}
+                      darkMode={settings.darkMode}
+                    />
+                  </div>
+                </div>
+                <div
+                  className={`shrink-0 rounded-xl border ${
+                    settings.darkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-gray-200'
+                  }`}
+                >
+                  <div
+                    ref={writingAreaRef}
+                    role="textbox"
+                    aria-label="Yazım alanı"
+                    onClick={() => inputRef.current?.focus()}
+                    className={`relative min-h-[4rem] max-h-[5rem] overflow-hidden rounded-xl ${
+                      settings.darkMode ? 'bg-slate-950' : 'bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 px-3 py-2 min-h-[4rem]">
+                      {completedWords.map((entry, index) => {
+                        const display = entry.skipped && !entry.word ? '—' : entry.word || '—';
+                        return (
+                          <span
+                            key={index}
+                            className={`font-mono leading-snug select-none opacity-50 ${
+                              settings.darkMode ? 'text-slate-400' : 'text-gray-500'
+                            }`}
+                            style={{
+                              fontSize: `${referenceFontSize}px`,
+                              ...(display !== '—' ? { filter: `blur(${settings.blurIntensity}px)` } : {}),
+                            }}
+                          >
+                            {display}
+                          </span>
+                        );
+                      })}
+                      <span className="inline-flex items-baseline max-w-full">
+                        <input
+                          ref={inputRef}
+                          type="text"
+                          value={currentWordInput}
+                          onChange={handleInputChange}
+                          onKeyDown={handleKeyDown}
+                          size={Math.max(4, currentWordInput.length + 2)}
+                          className={`font-mono leading-snug bg-transparent outline-none border-b border-slate-500/60 max-w-full min-w-[3ch] ${
+                            settings.darkMode ? 'text-white caret-slate-300' : 'text-gray-900 caret-gray-700'
+                          }`}
+                          style={{
+                            fontSize: `${referenceFontSize}px`,
+                            ...(currentWordInput.length > 0
+                              ? { filter: `blur(${settings.blurIntensity}px)` }
+                              : {}),
+                          }}
+                          placeholder={completedWords.length === 0 ? 'Yazmaya başlayın…' : ''}
+                          autoFocus
+                          autoComplete="off"
+                          autoCorrect="off"
+                          autoCapitalize="off"
+                          spellCheck={false}
+                        />
+                      </span>
+                    </div>
+                    {(completedWords.length > 0 || currentWordInput.length > 0) && (
+                      <div className={`absolute bottom-1.5 right-3 text-[10px] pointer-events-none ${theme.textMuted}`}>
+                        Odak: referans metin
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (currentWordInput.trim().length > 0) {
+                      const tw = splitTextWords(currentText);
+                      const ci = completedWordsRef.current.length;
+                      const cw = tw[ci] || '';
+                      const ic = normalizeExamWord(currentWordInput.trim()) === normalizeExamWord(cw);
+                      const entry = { word: currentWordInput.trim(), isCorrect: ic, correctWord: cw, skipped: false };
+                      completedWordsRef.current = [...completedWordsRef.current, entry];
+                      setCompletedWords([...completedWordsRef.current]);
+                    }
+                    endGame();
+                  }}
+                  className={`shrink-0 w-full py-3 rounded-xl font-semibold text-sm ${
+                    settings.darkMode
+                      ? 'bg-slate-800 hover:bg-slate-700 text-slate-100 border border-slate-600'
+                      : 'bg-gray-100 hover:bg-gray-200 text-gray-800 border border-gray-300'
+                  }`}
+                >
+                  Sınavı Bitir
+                </button>
+              </>
+            ) : (
+              <>
             {settings.gameMode && (
               <div className={`${settings.darkMode ? 'bg-slate-800/80' : 'bg-white'} ${settings.darkMode ? 'border-slate-600' : 'border-gray-300'} border-2 rounded-xl p-4`}>
                 <div className={`text-xs font-semibold mb-2 ${theme.textMuted}`}>🎮 OYUN MODU</div>
@@ -2346,6 +2495,8 @@ export default function App() {
                 Testi Bitir
               </button>
             )}
+              </>
+            )}
           </div>
         )}
 
@@ -2372,7 +2523,37 @@ export default function App() {
                 );
               })()}
 
+              {examMode && history[0].examWordResults && (
+                <>
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className={`${settings.darkMode ? 'bg-slate-700/50' : 'bg-gray-100'} rounded-xl p-4`}>
+                      <div className={`text-xs font-semibold uppercase mb-2 ${theme.textMuted}`}>Kelime</div>
+                      <div className="grid grid-cols-3 gap-2 text-center text-sm">
+                        <div><div className="text-xl font-bold text-green-400">{history[0].examWordResults.filter((r) => r.outcome === 'correct').length}</div><div className={theme.textMuted}>Doğru</div></div>
+                        <div><div className="text-xl font-bold text-red-400">{history[0].examWordResults.filter((r) => r.outcome === 'wrong').length}</div><div className={theme.textMuted}>Yanlış</div></div>
+                        <div><div className="text-xl font-bold text-orange-400">{history[0].examWordResults.filter((r) => r.outcome === 'skipped').length}</div><div className={theme.textMuted}>Atlanan</div></div>
+                      </div>
+                    </div>
+                    <div className={`${settings.darkMode ? 'bg-slate-700/50' : 'bg-gray-100'} rounded-xl p-4`}>
+                      <div className={`text-xs font-semibold uppercase mb-2 ${theme.textMuted}`}>Karakter</div>
+                      <div className="grid grid-cols-2 gap-2 text-center text-sm">
+                        <div><div className="text-xl font-bold text-green-400">{history[0].correctChars}</div><div className={theme.textMuted}>Doğru</div></div>
+                        <div><div className="text-xl font-bold text-red-400">{history[0].incorrectChars}</div><div className={theme.textMuted}>Yanlış</div></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <ExamWrongWordsPanel
+                      wrongWords={history[0].examWordResults.filter((r) => r.outcome === 'wrong' || r.outcome === 'skipped')}
+                      theme={theme}
+                      darkMode={settings.darkMode}
+                    />
+                  </div>
+                </>
+              )}
+
               {/* Kelime özeti */}
+              {!examMode && (
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className={`${settings.darkMode ? 'bg-slate-700/50' : 'bg-gray-100'} rounded-xl p-5 text-center`}>
                   <div className={`text-4xl font-bold mb-1 ${settings.darkMode ? 'text-white' : 'text-gray-900'}`}>{history[0].grossWords}</div>
@@ -2387,8 +2568,10 @@ export default function App() {
                   <div className={`text-sm ${theme.textMuted}`}>Yanlış Kelime</div>
                 </div>
               </div>
+              )}
 
               {/* Karakter özeti */}
+              {!examMode && (
               <div className="grid grid-cols-3 gap-4 mb-4">
                 <div className={`${settings.darkMode ? 'bg-slate-700/50' : 'bg-gray-100'} rounded-xl p-5 text-center`}>
                   <div className={`text-4xl font-bold mb-1 ${settings.darkMode ? 'text-white' : 'text-gray-900'}`}>{history[0].totalChars}</div>
@@ -2403,6 +2586,7 @@ export default function App() {
                   <div className={`text-sm ${theme.textMuted}`}>Yanlış Karakter</div>
                 </div>
               </div>
+              )}
 
               {/* Performans */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
