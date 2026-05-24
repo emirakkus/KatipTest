@@ -213,24 +213,18 @@ export const LEGAL_PHRASES = {
   ]
 };
 
-export const SPECIAL_9_MIN_TEXT = `etkili bir mektup tabii olmalı okuyanın bildiği okurken rahat edebileceği kelimeler seçilmelidir eğer yazı fazla detaylı fazla teknik veya ağdalı bir dille yazılmışsa okuyanın anlaması zorlaşır okuyucu böyle bir dil kullanırsak gösteriş yaptığımızı ve yeterli fikir ya da bilgimiz olmadığı için uzattığımızı düşünür
-
-mektupta ilk etki çok önemlidir ilk cümleye başlamak zordur ilk cümleyi herkes okur ilgilenir fakat bu cümle etkisizse arkasını getirmeyebilir okuyucu mektubu açınca kafasından geçen ilk soru şudur acaba bu mektup ne hakkındadır bu nedenle ilk cümle bu soruya cevap verebilmelidir
-
-dil kişinin duygularını açıklamasını diğer kişilerle yakınlaşıp bağlantı kurmasını sağlar bütün milletleri var eden onların sürekliliğini sağlayan son derece önemli unsurlardan biri de dildir dil bir medeniyet olayıdır ancak bir medeniyetin kurduğu dil başka bir medeniyetin düşündüklerini söyleyemez söylemeye de yetmez
-
-genellikle konuşurken kullandığımız dil bir mektubun üslubu olmalıdır bir yazının okuyucunun dikkatini dağıtacak ya da normal okuyuş şeklini değiştirmeye zorlayacak söz ve deyimlerden ve anlatımdan da kaçınılmalıdır biliyoruz ki iş yaşamında yazıyla açıklanan fikirlerin çoğunluğu sadedir basittir işte bu durum saklanmak istenir okuyanın bizim de basit olduğumuza hükmedeceği sanılır
-
-mesela şimdi bahar geldi artık tatil için plan yapmanın zamanıdır diyeceğimize güzel bir tatil geçirmek arzunuzun gerçekleşmesine yardımcı olacağını sandığımız kampımızın özelliklerini aşağıda bilgilerinize sunarız demek daha etkilidir
-
-kaderciliğin hâkim olduğu en hayati olaylarla din buyruklarının iç içe bulunduğu ve tenkitçi düşünceye de yer vermeyen bir medeniyetten uzaklaşılmıştır bunun yerine din ile devlet işlerinin birbirinden ayrıldığı hür ve ilmi düşünme imkânlarının bulunduğu tenkitçi düşünceyle yeniliklere sürekli açık olan bir medeniyete geçilmiştir türk milleti ülkesinin yüksek bağımsızlığını korunmasını bildiği gibi dilini de yabancı diller boyunduruğundan kurtararak medeni dünyadaki yerini almıştır
-
-fikirlerimizin derin kıymetli ve önemli olduğunu ispatlamak için abartılmış ağdalı fazla teknik kelime ve deyimlerin kullanılması yersizdir
-
-açıklamaların bulunduğu kısımda ise aktif etken cümleler kullanmak edilgen cümle kullanmaktan daha etkilidir
-
-örneğin satışlar hakkındaki özel raporunuz alınmıştır yerine satışlar hakkındaki özel raporunuzu aldık demek daha etkilidir
-`;
+/** 9 dakikalık sınav metni — tek paragraf, satır arası boşluksuz (okunabilir akış) */
+export const SPECIAL_9_MIN_TEXT = [
+  'etkili bir mektup tabii olmalı okuyanın bildiği okurken rahat edebileceği kelimeler seçilmelidir eğer yazı fazla detaylı fazla teknik veya ağdalı bir dille yazılmışsa okuyanın anlaması zorlaşır okuyucu böyle bir dil kullanırsak gösteriş yaptığımızı ve yeterli fikir ya da bilgimiz olmadığı için uzattığımızı düşünür',
+  'mektupta ilk etki çok önemlidir ilk cümleye başlamak zordur ilk cümleyi herkes okur ilgilenir fakat bu cümle etkisizse arkasını getirmeyebilir okuyucu mektubu açınca kafasından geçen ilk soru şudur acaba bu mektup ne hakkındadır bu nedenle ilk cümle bu soruya cevap verebilmelidir',
+  'dil kişinin duygularını açıklamasını diğer kişilerle yakınlaşıp bağlantı kurmasını sağlar bütün milletleri var eden onların sürekliliğini sağlayan son derece önemli unsurlardan biri de dildir dil bir medeniyet olayıdır ancak bir medeniyetin kurduğu dil başka bir medeniyetin düşündüklerini söyleyemez söylemeye de yetmez',
+  'genellikle konuşurken kullandığımız dil bir mektubun üslubu olmalıdır bir yazının okuyucunun dikkatini dağıtacak ya da normal okuyuş şeklini değiştirmeye zorlayacak söz ve deyimlerden ve anlatımdan da kaçınılmalıdır biliyoruz ki iş yaşamında yazıyla açıklanan fikirlerin çoğunluğu sadedir basittir işte bu durum saklanmak istenir okuyanın bizim de basit olduğumuza hükmedeceği sanılır',
+  'mesela şimdi bahar geldi artık tatil için plan yapmanın zamanıdır diyeceğimize güzel bir tatil geçirmek arzunuzun gerçekleşmesine yardımcı olacağını sandığımız kampımızın özelliklerini aşağıda bilgilerinize sunarız demek daha etkilidir',
+  'kaderciliğin hakim olduğu en hayati olaylarla din buyruklarının iç içe bulunduğu ve tenkitçi düşünceye de yer vermeyen bir medeniyetten uzaklaşılmıştır bunun yerine din ile devlet işlerinin birbirinden ayrıldığı hür ve ilmi düşünme imkânlarının bulunduğu tenkitçi düşünceyle yeniliklere sürekli açık olan bir medeniyete geçilmiştir türk milleti ülkesinin yüksek bağımsızlığını korunmasını bildiği gibi dilini de yabancı diller boyunduruğundan kurtararak medeni dünyadaki yerini almıştır',
+  'fikirlerimizin derin kıymetli ve önemli olduğunu ispatlamak için abartılmış ağdalı fazla teknik kelime ve deyimlerin kullanılması yersizdir',
+  'açıklamaların bulunduğu kısımda ise aktif etken cümleler kullanmak edilgen cümle kullanmaktan daha etkilidir',
+  'örneğin satışlar hakkındaki özel raporunuz alınmıştır yerine satışlar hakkındaki özel raporunuzu aldık demek daha etkilidir',
+].join(' ');
 
 export const TEXTS_EASY = [
   'bu dava ile ilgili karar verildi mahkeme sonucu olumlu oldu dosya ile ilgili durum iyi gidiyor',

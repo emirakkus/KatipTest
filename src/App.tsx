@@ -19,6 +19,7 @@ import {
   type KeyPressEvent,
   type TrainerConfig,
 } from './analytics';
+import { AlarmClockTimer } from './components/AlarmClockTimer';
 import { AnalyticsPanel } from './components/analytics/AnalyticsPanel';
 import { KeyboardHeatmap } from './components/analytics/KeyboardHeatmap';
 import { ResultSuggestions } from './components/analytics/ResultSuggestions';
@@ -69,7 +70,7 @@ interface UserSettings {
   keyboardType: 'F' | 'Q'; ghostMode: boolean;
   timeLimit: number; customTime: number; targetWords: number; useTargetWords: boolean;
   paceWPM: number; usePace: boolean;
-  blurIntensity: number; lineByLineBlur: boolean;
+  blurIntensity: number; blurTypedWords: boolean; lineByLineBlur: boolean;
   fontSize: number; lineHeight: number;
   theme: 'modern' | 'retro' | 'cinematic';
   showEffects: boolean;
@@ -105,6 +106,11 @@ const BADGES: Badge[] = [
   { id: 'pace_master', name: 'Ritim Ustası', description: 'Pace modunda hedef hızı tutturdunuz', icon: '🎯', earned: false },
   { id: 'custom_champion', name: 'Özel Şampiyon', description: 'Özel metinle 90+ kelime yazdınız', icon: '📝', earned: false },
 ];
+
+const NINE_MIN_EXAM_SECONDS = 540;
+const NINE_MIN_FONT_MIN = 16;
+const NINE_MIN_FONT_MAX = 24;
+const NINE_MIN_FONT_BOOST = 5;
 
 export default function App() {
 
@@ -178,8 +184,8 @@ export default function App() {
     keyboardType: 'F', ghostMode: false,
     timeLimit: 180, customTime: 180, targetWords: 100, useTargetWords: false,
     paceWPM: 60, usePace: false,
-    blurIntensity: 4, lineByLineBlur: false,
-    fontSize: 18, lineHeight: 1.8,
+    blurIntensity: 4, blurTypedWords: true, lineByLineBlur: false,
+    fontSize: 19, lineHeight: 1.8,
     theme: 'modern', showEffects: true,
     customText: '', useCustomText: false,
     difficultyFilter: 'all',
@@ -220,7 +226,11 @@ export default function App() {
         if (data.badges) setBadges(data.badges);
         if (data.streak) setStreak(data.streak);
         if (data.lastTestDate) setLastTestDate(data.lastTestDate);
-        if (data.settings) setSettings(prev => ({ ...prev, ...data.settings }));
+        if (data.settings) setSettings(prev => ({
+          ...prev,
+          ...data.settings,
+          blurTypedWords: data.settings.blurTypedWords ?? true,
+        }));
         setAnalytics((prev) => {
           const synced = syncLegacyStreak(prev, data.streak || 0, data.lastTestDate || null);
           const refreshed = refreshStreakForToday(synced.practiceStreak);
@@ -458,13 +468,13 @@ export default function App() {
     const neededWords = Math.max(100, Math.ceil(timeInMinutes * 50));
     
     if (seconds >= 540 && !settings.useCustomText && !settings.aiTextMode) {
-      text = SPECIAL_9_MIN_TEXT;
+      text = SPECIAL_9_MIN_TEXT.replace(/\s+/g, ' ').trim();
       let guard = 0;
       while (text.split(/\s+/).length < neededWords && guard < 50) {
-        text += ' ' + SPECIAL_9_MIN_TEXT;
+        text += ' ' + SPECIAL_9_MIN_TEXT.replace(/\s+/g, ' ').trim();
         guard++;
       }
-      text = removeTurkishDiacritics(text);
+      text = removeTurkishDiacritics(text).replace(/\s+/g, ' ').trim();
       newIndex = -5;
     } else if (settings.useCustomText && settings.customText) {
       text = settings.customText;
@@ -672,8 +682,28 @@ export default function App() {
 
     try {
 
-    const textWords = text.trim().split(/\s+/).filter(w => w.length > 0);
-    let correctChars = 0, incorrectChars = 0, netWords = words.filter(w => w.isCorrect).length;
+    const textWords = splitTextWords(text);
+    let correctChars = 0, incorrectChars = 0;
+    const examSession = examMode || dedicatedExamActive;
+
+    let netWords = 0;
+    if (examSession) {
+      let refIdx = 0;
+      for (const cw of words) {
+        if (refIdx >= textWords.length) break;
+        if (cw.skipped) {
+          refIdx++;
+          continue;
+        }
+        const expected = textWords[refIdx];
+        if (cw.word && normalizeExamWord(cw.word) === normalizeExamWord(expected)) {
+          netWords++;
+        }
+        refIdx++;
+      }
+    } else {
+      netWords = words.filter(w => w.isCorrect).length;
+    }
     const errorWordMap: { [key: string]: number } = {};
 
     // Karakter bazlı hata hesaplama — Zabıt katipliği sınav standardı
@@ -706,28 +736,50 @@ export default function App() {
 
     const wordErrorDetails: { expected: string; typed: string; errorType: string; charErrors: number }[] = [];
 
-    words.forEach((completedWord, index) => {
-      const correctWord = textWords[index] || '';
-      if (!correctWord) return; // Metin dışına taşmışsa atla
+    let refIdx = 0;
+    words.forEach((completedWord) => {
+      if (refIdx >= textWords.length) return;
+
+      if (completedWord.skipped) {
+        const correctWord = textWords[refIdx];
+        const normalizedCorrectLen = normalizeExamWord(correctWord).length;
+        errorWordMap[correctWord] = (errorWordMap[correctWord] || 0) + 1;
+        incorrectChars += normalizedCorrectLen;
+        wordErrorDetails.push({
+          expected: correctWord,
+          typed: '(atlandı)',
+          errorType: 'kelime atlandı',
+          charErrors: normalizedCorrectLen,
+        });
+        refIdx++;
+        return;
+      }
+
+      const correctWord = textWords[refIdx];
       const normalizedCorrectLen = normalizeExamWord(correctWord).length;
-      if (completedWord.isCorrect) {
+      const typedNorm = normalizeExamWord(completedWord.word);
+      const expectedNorm = normalizeExamWord(correctWord);
+      const isWordCorrect = typedNorm.length > 0 && typedNorm === expectedNorm;
+
+      if (isWordCorrect) {
         correctChars += normalizedCorrectLen;
       } else {
         errorWordMap[correctWord] = (errorWordMap[correctWord] || 0) + 1;
-        const errors = completedWord.skipped
-          ? normalizedCorrectLen
-          : Math.min(charErrors(completedWord.word, correctWord), normalizedCorrectLen);
+        const errors = completedWord.word
+          ? Math.min(charErrors(completedWord.word, correctWord), normalizedCorrectLen)
+          : normalizedCorrectLen;
         const correct = normalizedCorrectLen - errors;
         correctChars += correct;
         incorrectChars += errors;
 
         wordErrorDetails.push({
           expected: correctWord,
-          typed: completedWord.skipped ? '(atlandı)' : completedWord.word,
-          errorType: completedWord.skipped ? 'kelime atlandı' : detectErrorType(completedWord.word, correctWord),
+          typed: completedWord.word || '(boş)',
+          errorType: detectErrorType(completedWord.word, correctWord),
           charErrors: errors,
         });
       }
+      refIdx++;
     });
 
     const keyPressMap = new Map<string, { correct: number; incorrect: number }>();
@@ -954,7 +1006,7 @@ export default function App() {
     const prevLen = currentWordInput.length;
     if (value.length > prevLen && gameState === 'playing') {
       const typedChar = value[value.length - 1];
-      const textWords = currentTextRef.current.trim().split(/\s+/);
+      const textWords = splitTextWords(currentTextRef.current);
       const wordIdx = completedWordsRef.current.length;
       const expectedWord = textWords[wordIdx] || '';
       const expectedChar = expectedWord[value.length - 1];
@@ -965,39 +1017,64 @@ export default function App() {
   };
 
   const commitWord = (mode: 'complete' | 'skip') => {
-    const textWords = currentText.trim().split(/\s+/);
+    const textWords = splitTextWords(currentText);
     const currentWordIndex = completedWordsRef.current.length;
     const correctWord = textWords[currentWordIndex] || '';
     const typed = currentWordInput.trim();
     if (!correctWord) return;
 
-    const isCorrect = mode === 'complete' && typed.length > 0 && normalizeExamWord(typed) === normalizeExamWord(correctWord);
-    const entry = {
-      word: typed,
-      isCorrect,
-      correctWord,
-      skipped: mode === 'skip'
-    };
+    const entries = [...completedWordsRef.current];
+    let lastIsCorrect = false;
 
-    setCompletedWords(prev => [...prev, entry]);
-    completedWordsRef.current = [...completedWordsRef.current, entry];
+    if (mode === 'skip') {
+      // Atlanan kelime: kısmi yazım hizayı bozmasın diye boş kayıt
+      entries.push({
+        word: '',
+        isCorrect: false,
+        correctWord,
+        skipped: true,
+      });
+
+      const nextWord = textWords[currentWordIndex + 1] || '';
+      if (typed && nextWord && normalizeExamWord(typed) === normalizeExamWord(nextWord)) {
+        entries.push({
+          word: typed,
+          isCorrect: true,
+          correctWord: nextWord,
+          skipped: false,
+        });
+        lastIsCorrect = true;
+      }
+    } else {
+      const isCorrect = typed.length > 0 && normalizeExamWord(typed) === normalizeExamWord(correctWord);
+      entries.push({
+        word: typed,
+        isCorrect,
+        correctWord,
+        skipped: false,
+      });
+      lastIsCorrect = isCorrect;
+    }
+
+    setCompletedWords(entries);
+    completedWordsRef.current = entries;
     setCurrentWordInput('');
     requestAnimationFrame(() => inputRef.current?.focus());
 
     const elapsed = initialTimeRef.current - timeRemainingRef.current;
     rhythmRef.current = [...rhythmRef.current, {
       second: Math.max(0, elapsed),
-      wordsAtThatPoint: completedWordsRef.current.length,
+      wordsAtThatPoint: entries.length,
       chars: typed.length,
-      correct: isCorrect
+      correct: lastIsCorrect,
     }];
 
-    if (mode === 'complete' && (completedWordsRef.current.length) % 10 === 0 && isCorrect && settings.showEffects) {
+    if (mode === 'complete' && entries.length % 10 === 0 && lastIsCorrect && settings.showEffects) {
       const container = textContainerRef.current;
       if (container) createParticles(container.offsetWidth / 2, container.offsetHeight / 2);
     }
 
-    if (settings.suddenDeath && !isCorrect && mode === 'complete') {
+    if (settings.suddenDeath && !lastIsCorrect && mode === 'complete') {
       playSound(100, 0.5, 'sawtooth');
       endGame(true);
       return;
@@ -1005,11 +1082,13 @@ export default function App() {
 
     if (settings.gameMode) {
       setGameObstacles(prev => prev.map(obs => ({ ...obs, x: obs.x - 50 })).filter(obs => obs.x > -50));
-      if (isCorrect) playSound(800, 0.05);
-      else { playSound(200, 0.1); setGameObstacles(prev => prev.map(obs => ({ ...obs, x: obs.x + 20 }))); }
+      if (lastIsCorrect) playSound(800, 0.05);
+      else if (mode === 'complete') { playSound(200, 0.1); setGameObstacles(prev => prev.map(obs => ({ ...obs, x: obs.x + 20 }))); }
+      else playSound(520, 0.04);
     } else {
-      if (isCorrect) playSound(800, 0.05);
-      else playSound(200, 0.1);
+      if (lastIsCorrect) playSound(800, 0.05);
+      else if (mode === 'complete') playSound(200, 0.1);
+      else playSound(520, 0.04);
     }
   };
 
@@ -1025,7 +1104,7 @@ export default function App() {
     } else if (e.key === 'Tab' && gameState === 'playing') {
       e.preventDefault();
       if (currentWordInput.trim().length > 0) {
-        const textWords = currentText.trim().split(/\s+/);
+        const textWords = splitTextWords(currentText);
         const ci = completedWordsRef.current.length;
         const cw = textWords[ci] || '';
         const ic = normalizeExamWord(currentWordInput.trim()) === normalizeExamWord(cw);
@@ -1054,12 +1133,24 @@ export default function App() {
     if (!el) return;
 
     const fitReferenceText = () => {
-      const minSize = 10;
-      const maxSize = settings.fontSize;
-      const lineHeight = Math.max(settings.lineHeight, 1.88);
-      let size = maxSize;
+      const isNineMin = initialTimeRef.current >= NINE_MIN_EXAM_SECONDS;
+      const minSize = isNineMin ? NINE_MIN_FONT_MIN : 10;
+      const maxSize = isNineMin
+        ? Math.min(settings.fontSize + NINE_MIN_FONT_BOOST, NINE_MIN_FONT_MAX)
+        : settings.fontSize;
+      const lineHeight = isNineMin ? 1.72 : Math.max(settings.lineHeight, 1.88);
       el.style.lineHeight = String(lineHeight);
+
+      if (isNineMin) {
+        el.style.overflowY = 'auto';
+        el.style.overflowX = 'hidden';
+        el.style.fontSize = `${maxSize}px`;
+        setReferenceFontSize(maxSize);
+        return;
+      }
+
       el.style.overflow = 'hidden';
+      let size = maxSize;
       do {
         el.style.fontSize = `${size}px`;
         if (el.scrollHeight <= el.clientHeight + 1) break;
@@ -1120,18 +1211,13 @@ export default function App() {
       .replace(/\s+/g, ' ')
       .trim();
 
+  const splitTextWords = (text: string) => text.trim().split(/\s+/).filter((w) => w.length > 0);
+
   const safeMax = (arr: number[]) => arr.length > 0 ? Math.max(...arr) : 0;
   const bestWordsAll = safeMax(history.map(h => h.netWords));
   const bestCharsAll = safeMax(history.map(h => h.correctChars));
   const bestWpmAll = safeMax(history.map(h => h.wpm));
   const bestAccuracyAll = safeMax(history.map(h => h.accuracy));
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
 
 
 
@@ -2163,7 +2249,7 @@ export default function App() {
                     </button>
                   )}
                 </div>
-                <div ref={textContainerRef} className={`leading-loose font-mono min-h-[10rem] max-h-[calc(100vh-13.5rem)] sm:max-h-[calc(100vh-12.5rem)] whitespace-pre-wrap px-3 py-3 ${gameState === 'playing' ? 'overflow-hidden' : 'overflow-y-auto'} ${settings.darkMode ? 'text-slate-200' : 'text-gray-800'}`} style={{ fontSize: `${gameState === 'playing' ? referenceFontSize : settings.fontSize}px`, lineHeight: Math.max(settings.lineHeight, 1.88) }}>
+                <div ref={textContainerRef} className={`font-mono px-3 py-3 ${initialTimeRef.current >= NINE_MIN_EXAM_SECONDS || settings.timeLimit >= NINE_MIN_EXAM_SECONDS ? 'min-h-[11rem] max-h-[calc(100vh-11rem)] sm:max-h-[calc(100vh-10rem)] leading-relaxed tracking-wide whitespace-normal' : 'min-h-[10rem] max-h-[calc(100vh-13.5rem)] sm:max-h-[calc(100vh-12.5rem)] leading-loose whitespace-pre-wrap'} ${gameState === 'playing' && initialTimeRef.current < NINE_MIN_EXAM_SECONDS ? 'overflow-hidden' : 'overflow-y-auto'} ${settings.darkMode ? 'text-slate-200' : 'text-gray-800'}`} style={{ fontSize: `${gameState === 'playing' ? referenceFontSize : (initialTimeRef.current >= NINE_MIN_EXAM_SECONDS || settings.timeLimit >= NINE_MIN_EXAM_SECONDS ? Math.min(settings.fontSize + NINE_MIN_FONT_BOOST, NINE_MIN_FONT_MAX) : settings.fontSize)}px`, lineHeight: initialTimeRef.current >= NINE_MIN_EXAM_SECONDS || settings.timeLimit >= NINE_MIN_EXAM_SECONDS ? 1.72 : Math.max(settings.lineHeight, 1.88) }}>
                   {currentText}
                   {particles.map(p => (
                     <div key={p.id} className="fixed w-2 h-2 rounded-full animate-ping" style={{ left: p.x, top: p.y, backgroundColor: p.color }} />
@@ -2171,15 +2257,13 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="flex justify-end sm:justify-center shrink-0 sm:self-center sm:sticky sm:top-20 px-0 sm:px-1">
-                <div
-                  className={`rounded-lg border px-2.5 py-1 text-center min-w-[4.5rem] ${settings.darkMode ? 'bg-slate-950/90 border-amber-500/45' : 'bg-amber-50 border-amber-400/50'}`}
-                  aria-live="polite"
-                  aria-label={`Kalan süre ${examTimerUnlimited ? 'sınırsız' : formatTime(timeRemaining)}`}
-                >
-                  <div className={`text-[8px] uppercase tracking-wide font-semibold leading-none ${settings.darkMode ? 'text-amber-200/90' : 'text-amber-900/90'}`}>Süre</div>
-                  <div className={`text-xl sm:text-2xl font-mono font-bold leading-tight tabular-nums ${timeRemaining < 30 && !examTimerUnlimited ? 'text-red-400 animate-pulse' : 'text-amber-400'}`}>{examTimerUnlimited ? '∞' : formatTime(timeRemaining)}</div>
-                </div>
+              <div className="flex justify-end sm:justify-center shrink-0 sm:self-start sm:sticky sm:top-20 px-0 sm:px-1 pt-2">
+                <AlarmClockTimer
+                  seconds={timeRemaining}
+                  totalSeconds={initialTimeRef.current}
+                  unlimited={examTimerUnlimited}
+                  darkMode={settings.darkMode}
+                />
               </div>
             </div>
 
@@ -2189,7 +2273,7 @@ export default function App() {
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                     YAZIM ALANI
                   </div>
-                  {settings.hardMode && <div className="flex items-center text-purple-400 text-[11px]">🎯 ZOR MOD ({settings.blurIntensity}px blur)</div>}
+                  {(settings.blurTypedWords || settings.hardMode) && <div className="flex items-center text-purple-400 text-[11px]">👁️ Bulanık yazım ({settings.blurIntensity}px)</div>}
                   {capsLockOn && <div className="flex items-center text-red-400 font-semibold text-[11px]">⚠️ CAPSLOCK</div>}
                   {examMode && !dedicatedExamActive && <div className="flex items-center text-emerald-400 font-semibold text-[11px]">🎓 SINAV</div>}
                   {dedicatedExamActive && <div className="flex items-center text-indigo-400 font-semibold text-[11px]">📋 SINAV MODU</div>}
@@ -2209,10 +2293,16 @@ export default function App() {
                         : entry.isCorrect
                         ? (settings.darkMode ? 'text-sky-300/50' : 'text-sky-600/55')
                         : (settings.darkMode ? 'text-red-400/55' : 'text-red-500/60');
+                      const blurTyped = settings.blurTypedWords || settings.hardMode;
+                      const wordFontSize = gameState === 'playing' ? referenceFontSize : settings.fontSize;
                       return (
                         <span
                           key={index}
-                          className={`font-mono text-xl sm:text-2xl leading-snug select-none opacity-50 scale-[0.98] transition-[opacity,color] duration-200 ${tokenClass}`}
+                          className={`font-mono leading-snug select-none opacity-50 scale-[0.98] transition-[opacity,color,filter] duration-200 ${tokenClass}`}
+                          style={{
+                            fontSize: `${wordFontSize}px`,
+                            ...(blurTyped && display !== '—' ? { filter: `blur(${settings.blurIntensity}px)` } : {}),
+                          }}
                         >
                           {display}
                         </span>
@@ -2226,8 +2316,13 @@ export default function App() {
                         onChange={handleInputChange}
                         onKeyDown={handleKeyDown}
                         size={Math.max(4, currentWordInput.length + 2)}
-                        className={`font-mono text-xl sm:text-2xl leading-snug bg-transparent outline-none border-b-2 border-amber-400/90 max-w-full min-w-[3ch] ${settings.darkMode ? 'text-white caret-amber-400' : 'text-gray-900 caret-amber-600'} ${completedWords.length === 0 ? (settings.darkMode ? 'placeholder:text-slate-500' : 'placeholder:text-gray-400') : ''}`}
-                        style={settings.hardMode && currentWordInput.length > 0 ? { filter: `blur(${settings.blurIntensity}px)` } : undefined}
+                        className={`font-mono leading-snug bg-transparent outline-none border-b-2 border-amber-400/90 max-w-full min-w-[3ch] ${settings.darkMode ? 'text-white caret-amber-400' : 'text-gray-900 caret-amber-600'} ${completedWords.length === 0 ? (settings.darkMode ? 'placeholder:text-slate-500' : 'placeholder:text-gray-400') : ''}`}
+                        style={{
+                          fontSize: `${gameState === 'playing' ? referenceFontSize : settings.fontSize}px`,
+                          ...((settings.blurTypedWords || settings.hardMode) && currentWordInput.length > 0
+                            ? { filter: `blur(${settings.blurIntensity}px)` }
+                            : {}),
+                        }}
                         placeholder={completedWords.length === 0 ? 'Kelimeyi buraya yazın…' : ''}
                         autoFocus
                         autoComplete="off"
@@ -2237,7 +2332,7 @@ export default function App() {
                       />
                     </span>
                   </div>
-                  {settings.hardMode && currentWordInput.length > 0 && <div className="absolute bottom-2 right-4 text-xs text-purple-400 pointer-events-none">👁️ Bulanık Mod</div>}
+                  {(settings.blurTypedWords || settings.hardMode) && (completedWords.length > 0 || currentWordInput.length > 0) && <div className="absolute bottom-2 right-4 text-xs text-purple-400/80 pointer-events-none">Odak: referans metin</div>}
                 </div>
                 {!settings.zenMode && <div className={`mt-1 text-[11px] ${theme.textMuted} flex flex-wrap items-center gap-2`}>
                   <span className="flex items-center"><kbd className={`px-1.5 py-0.5 rounded font-mono text-[10px] mr-1 ${settings.darkMode ? 'bg-slate-700 text-slate-300' : 'bg-gray-200 text-gray-700'}`}>Space</kbd>Tamamla</span>
@@ -2250,11 +2345,11 @@ export default function App() {
                 type="button"
                 onClick={() => {
                   if (currentWordInput.trim().length > 0) {
-                    const tw = currentText.trim().split(/\s+/);
+                    const tw = splitTextWords(currentText);
                     const ci = completedWordsRef.current.length;
                     const cw = tw[ci] || '';
                     const ic = normalizeExamWord(currentWordInput.trim()) === normalizeExamWord(cw);
-                    const entry = { word: currentWordInput.trim(), isCorrect: ic, correctWord: cw };
+                    const entry = { word: currentWordInput.trim(), isCorrect: ic, correctWord: cw, skipped: false };
                     completedWordsRef.current = [...completedWordsRef.current, entry];
                     setCompletedWords([...completedWordsRef.current]);
                   }
@@ -3697,15 +3792,15 @@ export default function App() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className={`text-sm ${theme.text}`}>🎯 Zor Mod (Blur)</div>
-                      <div className={`text-xs ${theme.textMuted}`}>Yazdığın metin bulanık olur</div>
+                      <div className={`text-sm ${theme.text}`}>👁️ Yazım alanını bulanıklaştır</div>
+                      <div className={`text-xs ${theme.textMuted}`}>Yazdığın kelimeler dikkat dağıtmaz</div>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" checked={settings.hardMode} onChange={(e) => setSettings(s => ({ ...s, hardMode: e.target.checked }))} className="sr-only peer" />
+                      <input type="checkbox" checked={settings.blurTypedWords} onChange={(e) => setSettings(s => ({ ...s, blurTypedWords: e.target.checked }))} className="sr-only peer" />
                       <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
                     </label>
                   </div>
-                  {settings.hardMode && (
+                  {(settings.blurTypedWords || settings.hardMode) && (
                     <div>
                       <div className="flex justify-between text-xs mb-2"><span className={theme.textMuted}>Bulanıklık</span><span className={theme.text}>{settings.blurIntensity}px</span></div>
                       <div className={`relative w-full h-2 rounded-full ${settings.darkMode ? 'bg-slate-600' : 'bg-gray-300'}`}>
@@ -3714,6 +3809,16 @@ export default function App() {
                       </div>
                     </div>
                   )}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className={`text-sm ${theme.text}`}>🎯 Zor Mod</div>
+                      <div className={`text-xs ${theme.textMuted}`}>Ekstra XP bonusu (+50%)</div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" checked={settings.hardMode} onChange={(e) => setSettings(s => ({ ...s, hardMode: e.target.checked }))} className="sr-only peer" />
+                      <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                    </label>
+                  </div>
                   <div>
                     <div className="flex justify-between text-xs mb-2"><span className={theme.textMuted}>Font Boyutu</span><span className={theme.text}>{settings.fontSize}px</span></div>
                     <div className={`relative w-full h-2 rounded-full ${settings.darkMode ? 'bg-slate-600' : 'bg-gray-300'}`}>

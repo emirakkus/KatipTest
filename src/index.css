@@ -54,3 +54,42 @@ html { scroll-behavior: smooth; }
 .fade-up-2 { animation-delay: 0.1s; opacity: 0; }
 .fade-up-3 { animation-delay: 0.15s; opacity: 0; }
 .fade-up-4 { animation-delay: 0.2s; opacity: 0; }
+
+/* Modern alarm clock timer */
+@keyframes clockColonBlink {
+  0%, 45% { opacity: 1; }
+  50%, 95% { opacity: 0.2; }
+  100% { opacity: 1; }
+}
+.clock-colon-blink {
+  animation: clockColonBlink 1s ease-in-out infinite;
+}
+
+@keyframes clockUrgentPulse {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(251, 146, 60, 0.35)); }
+  50% { filter: drop-shadow(0 0 14px rgba(251, 146, 60, 0.65)); }
+}
+.clock-urgent-pulse {
+  animation: clockUrgentPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes clockCriticalPulse {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(248, 113, 113, 0.45)); transform: scale(1); }
+  50% { filter: drop-shadow(0 0 18px rgba(248, 113, 113, 0.85)); transform: scale(1.02); }
+}
+.clock-urgent-critical {
+  animation: clockCriticalPulse 0.6s ease-in-out infinite;
+}
+
+.clock-glow-idle {
+  filter: drop-shadow(0 4px 20px rgba(245, 158, 11, 0.12));
+}
+
+@keyframes clockInfiniteSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.clock-infinite-spin {
+  transform-origin: center;
+  animation: clockInfiniteSpin 12s linear infinite;
+}

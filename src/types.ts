@@ -63,6 +63,7 @@ export interface UserSettings {
   paceWPM: number;
   usePace: boolean;
   blurIntensity: number;
+  blurTypedWords: boolean;
   lineByLineBlur: boolean;
   fontSize: number;
   lineHeight: number;
