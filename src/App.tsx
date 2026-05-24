@@ -108,9 +108,13 @@ const BADGES: Badge[] = [
 ];
 
 const NINE_MIN_EXAM_SECONDS = 540;
-const NINE_MIN_FONT_MIN = 16;
-const NINE_MIN_FONT_MAX = 24;
-const NINE_MIN_FONT_BOOST = 5;
+/** 3 dk sınav referans metni ile aynı okunaklı punto — tüm modlarda */
+const REFERENCE_FONT_MAX = 20;
+const REFERENCE_FONT_BOOST = 5;
+const REFERENCE_LINE_HEIGHT = 1.72;
+
+const getReferenceFontPx = (baseFontSize: number) =>
+  Math.min(baseFontSize + REFERENCE_FONT_BOOST, REFERENCE_FONT_MAX);
 
 export default function App() {
 
@@ -467,7 +471,7 @@ export default function App() {
     const timeInMinutes = seconds / 60;
     const neededWords = Math.max(100, Math.ceil(timeInMinutes * 50));
     
-    if (seconds >= 540 && !settings.useCustomText && !settings.aiTextMode) {
+    if (seconds >= NINE_MIN_EXAM_SECONDS && !settings.useCustomText && !settings.aiTextMode) {
       text = SPECIAL_9_MIN_TEXT.replace(/\s+/g, ' ').trim();
       let guard = 0;
       while (text.split(/\s+/).length < neededWords && guard < 50) {
@@ -1133,30 +1137,12 @@ export default function App() {
     if (!el) return;
 
     const fitReferenceText = () => {
-      const isNineMin = initialTimeRef.current >= NINE_MIN_EXAM_SECONDS;
-      const minSize = isNineMin ? NINE_MIN_FONT_MIN : 10;
-      const maxSize = isNineMin
-        ? Math.min(settings.fontSize + NINE_MIN_FONT_BOOST, NINE_MIN_FONT_MAX)
-        : settings.fontSize;
-      const lineHeight = isNineMin ? 1.72 : Math.max(settings.lineHeight, 1.88);
-      el.style.lineHeight = String(lineHeight);
-
-      if (isNineMin) {
-        el.style.overflowY = 'auto';
-        el.style.overflowX = 'hidden';
-        el.style.fontSize = `${maxSize}px`;
-        setReferenceFontSize(maxSize);
-        return;
-      }
-
-      el.style.overflow = 'hidden';
-      let size = maxSize;
-      do {
-        el.style.fontSize = `${size}px`;
-        if (el.scrollHeight <= el.clientHeight + 1) break;
-        size -= 0.5;
-      } while (size > minSize);
-      setReferenceFontSize(size);
+      const fontPx = getReferenceFontPx(settings.fontSize);
+      el.style.lineHeight = String(REFERENCE_LINE_HEIGHT);
+      el.style.overflowY = 'auto';
+      el.style.overflowX = 'hidden';
+      el.style.fontSize = `${fontPx}px`;
+      setReferenceFontSize(fontPx);
     };
 
     fitReferenceText();
@@ -2249,7 +2235,7 @@ export default function App() {
                     </button>
                   )}
                 </div>
-                <div ref={textContainerRef} className={`font-mono px-3 py-3 ${initialTimeRef.current >= NINE_MIN_EXAM_SECONDS || settings.timeLimit >= NINE_MIN_EXAM_SECONDS ? 'min-h-[11rem] max-h-[calc(100vh-11rem)] sm:max-h-[calc(100vh-10rem)] leading-relaxed tracking-wide whitespace-normal' : 'min-h-[10rem] max-h-[calc(100vh-13.5rem)] sm:max-h-[calc(100vh-12.5rem)] leading-loose whitespace-pre-wrap'} ${gameState === 'playing' && initialTimeRef.current < NINE_MIN_EXAM_SECONDS ? 'overflow-hidden' : 'overflow-y-auto'} ${settings.darkMode ? 'text-slate-200' : 'text-gray-800'}`} style={{ fontSize: `${gameState === 'playing' ? referenceFontSize : (initialTimeRef.current >= NINE_MIN_EXAM_SECONDS || settings.timeLimit >= NINE_MIN_EXAM_SECONDS ? Math.min(settings.fontSize + NINE_MIN_FONT_BOOST, NINE_MIN_FONT_MAX) : settings.fontSize)}px`, lineHeight: initialTimeRef.current >= NINE_MIN_EXAM_SECONDS || settings.timeLimit >= NINE_MIN_EXAM_SECONDS ? 1.72 : Math.max(settings.lineHeight, 1.88) }}>
+                <div ref={textContainerRef} className={`font-mono px-3 py-3 min-h-[11rem] max-h-[calc(100vh-11rem)] sm:max-h-[calc(100vh-10rem)] leading-relaxed tracking-wide whitespace-normal overflow-y-auto ${settings.darkMode ? 'text-slate-200' : 'text-gray-800'}`} style={{ fontSize: `${gameState === 'playing' ? referenceFontSize : getReferenceFontPx(settings.fontSize)}px`, lineHeight: REFERENCE_LINE_HEIGHT }}>
                   {currentText}
                   {particles.map(p => (
                     <div key={p.id} className="fixed w-2 h-2 rounded-full animate-ping" style={{ left: p.x, top: p.y, backgroundColor: p.color }} />
@@ -2294,7 +2280,7 @@ export default function App() {
                         ? (settings.darkMode ? 'text-sky-300/50' : 'text-sky-600/55')
                         : (settings.darkMode ? 'text-red-400/55' : 'text-red-500/60');
                       const blurTyped = settings.blurTypedWords || settings.hardMode;
-                      const wordFontSize = gameState === 'playing' ? referenceFontSize : settings.fontSize;
+                      const wordFontSize = gameState === 'playing' ? referenceFontSize : getReferenceFontPx(settings.fontSize);
                       return (
                         <span
                           key={index}
@@ -2318,7 +2304,7 @@ export default function App() {
                         size={Math.max(4, currentWordInput.length + 2)}
                         className={`font-mono leading-snug bg-transparent outline-none border-b-2 border-amber-400/90 max-w-full min-w-[3ch] ${settings.darkMode ? 'text-white caret-amber-400' : 'text-gray-900 caret-amber-600'} ${completedWords.length === 0 ? (settings.darkMode ? 'placeholder:text-slate-500' : 'placeholder:text-gray-400') : ''}`}
                         style={{
-                          fontSize: `${gameState === 'playing' ? referenceFontSize : settings.fontSize}px`,
+                          fontSize: `${gameState === 'playing' ? referenceFontSize : getReferenceFontPx(settings.fontSize)}px`,
                           ...((settings.blurTypedWords || settings.hardMode) && currentWordInput.length > 0
                             ? { filter: `blur(${settings.blurIntensity}px)` }
                             : {}),
