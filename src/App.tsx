@@ -176,6 +176,8 @@ export default function App() {
     setShowAuthModal(true);
   };
   const [dbUserEmail, setDbUserEmail] = useState<string | null>(null);
+  const [profileNameDraft, setProfileNameDraft] = useState('');
+  const [profileNameSaveStatus, setProfileNameSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const dbEnabled = isDbEnabled();
   const [leaderboardTab, setLeaderboardTab] = useState<'all' | 'daily' | 'weekly' | 'monthly'>('all');
   const [leaderboardData, setLeaderboardData] = useState<any[]>([]);
@@ -210,6 +212,12 @@ export default function App() {
   useEffect(() => { completedWordsRef.current = completedWords; }, [completedWords]);
   useEffect(() => { timeRemainingRef.current = timeRemaining; }, [timeRemaining]);
   useEffect(() => { currentTextRef.current = currentText; }, [currentText]);
+  useEffect(() => {
+    if (gameState === 'profile') {
+      setProfileNameDraft(profile.name || '');
+      setProfileNameSaveStatus('idle');
+    }
+  }, [gameState, profile.name]);
   const endGameRef = useRef<(sd?: boolean) => void>(() => {});
   const inputRef = useRef<HTMLInputElement>(null);
   const writingAreaRef = useRef<HTMLDivElement>(null);
@@ -1667,7 +1675,7 @@ export default function App() {
                   if (cloudProfile) {
                     mergedProfile = {
                       ...profile,
-                      name: cloudProfile.name || profile.name || user?.email?.split('@')[0] || '',
+                      name: cloudProfile.name || profile.name || '',
                       avatar: cloudProfile.avatar || profile.avatar,
                       xp: cloudProfile.xp || profile.xp,
                       careerStage: cloudProfile.career_stage || profile.careerStage,
@@ -1681,7 +1689,7 @@ export default function App() {
                       completedMissionIds: cloudProfile.completed_missions || profile.completedMissionIds,
                     };
                   } else {
-                    mergedProfile = { ...profile, name: profile.name || user?.email?.split('@')[0] || '' };
+                    mergedProfile = { ...profile, name: profile.name || '' };
                     await saveProfileToDb({ name: mergedProfile.name, avatar: mergedProfile.avatar || '👤' }).catch(() => {});
                   }
                   setProfile(mergedProfile);
@@ -1786,7 +1794,7 @@ export default function App() {
                 </button>
                 {dbUserEmail ? (
                     <button onClick={() => setShowLogoutConfirm(true)} className={`px-3 py-2 rounded-lg text-xs font-semibold ${settings.darkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-200' : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}`}>
-                      ☁️ {dbUserEmail.split('@')[0]} · Çıkış
+                      ☁️ {profile.name || 'Kullanıcı'} · Çıkış
                     </button>
                 ) : (
                     <div className="flex items-center gap-2">
@@ -2959,7 +2967,7 @@ export default function App() {
                     </div>
                   </div>
                   <div className="flex-1 text-center md:text-left">
-                    <div className={`text-xl font-bold ${theme.text}`}>{profile.name || (dbUserEmail ? dbUserEmail.split('@')[0] : 'Misafir Kullanıcı')}</div>
+                    <div className={`text-xl font-bold ${theme.text}`}>{profile.name || (dbUserEmail ? 'Kullanıcı' : 'Misafir Kullanıcı')}</div>
                     <div className="flex flex-wrap items-center gap-3 mt-1 justify-center md:justify-start">
                       <span className={`text-xs ${theme.textMuted}`}>📅 {new Date(profile.createdAt).toLocaleDateString('tr-TR')}</span>
                       <span className="text-xs text-amber-400 font-semibold">⭐ Lv.{Math.floor((profile.xp || 0) / 200) + 1}</span>
@@ -2973,6 +2981,50 @@ export default function App() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            <div className={`${theme.cardBg} ${theme.border} border rounded-xl p-6`}>
+              <h3 className={`text-lg font-semibold mb-3 ${theme.text}`}>✏️ Kullanıcı Adı</h3>
+              <p className={`text-sm mb-4 ${theme.textMuted}`}>Giriş yaptıktan sonra üst menüde ve hoş geldin mesajında bu isim görünür.</p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <input
+                  type="text"
+                  value={profileNameDraft}
+                  onChange={(e) => { setProfileNameDraft(e.target.value); setProfileNameSaveStatus('idle'); }}
+                  placeholder="Adın / Kullanıcı adın"
+                  maxLength={40}
+                  className={`flex-1 px-4 py-3 rounded-xl text-sm border outline-none focus:border-amber-500 ${settings.darkMode ? 'bg-slate-800 text-white border-slate-700 placeholder-slate-500' : 'bg-white text-gray-900 border-gray-200 placeholder-gray-400'}`}
+                />
+                <button
+                  type="button"
+                  disabled={profileNameSaveStatus === 'saving'}
+                  onClick={async () => {
+                    const trimmed = profileNameDraft.trim();
+                    if (!trimmed) {
+                      setProfileNameSaveStatus('error');
+                      return;
+                    }
+                    setProfileNameSaveStatus('saving');
+                    const updated = { ...profile, name: trimmed };
+                    setProfile(updated);
+                    saveProfile(updated);
+                    if (dbUserEmail) {
+                      const { error } = await saveProfileToDb({ name: trimmed, avatar: updated.avatar || '👤' }).catch(() => ({ error: 'Kayıt başarısız' }));
+                      if (error) {
+                        setProfileNameSaveStatus('error');
+                        return;
+                      }
+                    }
+                    setProfileNameSaveStatus('saved');
+                    setTimeout(() => setProfileNameSaveStatus('idle'), 2000);
+                  }}
+                  className="px-5 py-3 rounded-xl text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white disabled:opacity-60"
+                >
+                  {profileNameSaveStatus === 'saving' ? 'Kaydediliyor...' : 'Kaydet'}
+                </button>
+              </div>
+              {profileNameSaveStatus === 'saved' && <p className="text-sm text-green-400 mt-2">Kullanıcı adı kaydedildi.</p>}
+              {profileNameSaveStatus === 'error' && <p className="text-sm text-red-400 mt-2">Geçerli bir kullanıcı adı gir.</p>}
             </div>
 
             {/* İstatistik Grid */}
