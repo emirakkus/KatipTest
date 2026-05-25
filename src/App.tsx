@@ -224,7 +224,9 @@ export default function App() {
   const keySessionRef = useRef<{ events: KeyPressEvent[]; lastTs: number }>({ events: [], lastTs: 0 });
   const trainerModeRef = useRef(false);
   const dedicatedExamRef = useRef<{ exam: ExamText; timerSeconds: number; fullscreen: boolean } | null>(null);
+  const examModeRef = useRef(examMode);
   const examTimerUnlimitedRef = useRef(false);
+  useEffect(() => { examModeRef.current = examMode; }, [examMode]);
 
   const hideExamHeader =
     gameState === 'modes_hub' ||
@@ -235,6 +237,7 @@ export default function App() {
     (gameState === 'finished' && examMode) ||
     (gameState === 'playing' && (examMode || dedicatedExamActive));
   const examFocusMode = gameState === 'playing' && (examMode || dedicatedExamActive);
+  const modesNavActive = gameState === 'modes_hub' || gameState === 'exam_catalog';
 
   useEffect(() => {
     try {
@@ -703,7 +706,8 @@ export default function App() {
 
     const textWords = splitTextWords(text);
     let correctChars = 0, incorrectChars = 0;
-    const examSession = examMode || dedicatedExamActive;
+    // Timer/ref callback'lerinde state güncel olmayabilir; ref ile sınav oturumunu belirle
+    const examSession = !!dedicatedExamRef.current || examModeRef.current;
 
     let netWords = 0;
     if (examSession) {
@@ -1748,8 +1752,8 @@ export default function App() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-6m3 6V7m3 10v-4m3 8H6a2 2 0 01-2-2V5a2 2 0 012-2h12a2 2 0 012 2v14a2 2 0 01-2 2z" />
                   </svg>
                 </button>
-                <button onClick={() => { if (gameState === 'playing') return; setGameState('modes_hub'); }} className={`p-2 rounded-lg ${gameState === 'modes_hub' || gameState === 'exam_catalog' ? 'bg-amber-500' : (settings.darkMode ? 'bg-slate-800 hover:bg-slate-700' : 'bg-gray-200 hover:bg-gray-300')} ${gameState === 'playing' ? 'opacity-50 cursor-not-allowed' : ''}`} title="Modlar">
-                  <svg className={`w-5 h-5 ${gameState === 'modes_hub' || gameState === 'exam_catalog' ? 'text-white' : (settings.darkMode ? 'text-white' : 'text-gray-700')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <button onClick={() => { if (gameState === 'playing') return; setGameState('modes_hub'); }} className={`p-2 rounded-lg ${modesNavActive ? 'bg-amber-500' : (settings.darkMode ? 'bg-slate-800 hover:bg-slate-700' : 'bg-gray-200 hover:bg-gray-300')} ${gameState === 'playing' ? 'opacity-50 cursor-not-allowed' : ''}`} title="Modlar">
+                  <svg className={`w-5 h-5 ${modesNavActive ? 'text-white' : (settings.darkMode ? 'text-white' : 'text-gray-700')}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
                   </svg>
                 </button>
@@ -2523,15 +2527,24 @@ export default function App() {
                 );
               })()}
 
-              {examMode && history[0].examWordResults && (
+              {examMode && history[0] && (() => {
+                const wr = history[0].examWordResults;
+                const wordCorrect = wr?.length
+                  ? wr.filter((r) => r.outcome === 'correct').length
+                  : history[0].netWords;
+                const wordWrong = wr?.length
+                  ? wr.filter((r) => r.outcome === 'wrong').length
+                  : Math.max(0, history[0].grossWords - history[0].netWords);
+                const wordSkipped = wr?.length ? wr.filter((r) => r.outcome === 'skipped').length : 0;
+                return (
                 <>
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div className={`${settings.darkMode ? 'bg-slate-700/50' : 'bg-gray-100'} rounded-xl p-4`}>
                       <div className={`text-xs font-semibold uppercase mb-2 ${theme.textMuted}`}>Kelime</div>
                       <div className="grid grid-cols-3 gap-2 text-center text-sm">
-                        <div><div className="text-xl font-bold text-green-400">{history[0].examWordResults.filter((r) => r.outcome === 'correct').length}</div><div className={theme.textMuted}>Doğru</div></div>
-                        <div><div className="text-xl font-bold text-red-400">{history[0].examWordResults.filter((r) => r.outcome === 'wrong').length}</div><div className={theme.textMuted}>Yanlış</div></div>
-                        <div><div className="text-xl font-bold text-orange-400">{history[0].examWordResults.filter((r) => r.outcome === 'skipped').length}</div><div className={theme.textMuted}>Atlanan</div></div>
+                        <div><div className="text-xl font-bold text-green-400">{wordCorrect}</div><div className={theme.textMuted}>Doğru</div></div>
+                        <div><div className="text-xl font-bold text-red-400">{wordWrong}</div><div className={theme.textMuted}>Yanlış</div></div>
+                        <div><div className="text-xl font-bold text-orange-400">{wordSkipped}</div><div className={theme.textMuted}>Atlanan</div></div>
                       </div>
                     </div>
                     <div className={`${settings.darkMode ? 'bg-slate-700/50' : 'bg-gray-100'} rounded-xl p-4`}>
@@ -2542,15 +2555,18 @@ export default function App() {
                       </div>
                     </div>
                   </div>
-                  <div className="mb-4">
-                    <ExamWrongWordsPanel
-                      wrongWords={history[0].examWordResults.filter((r) => r.outcome === 'wrong' || r.outcome === 'skipped')}
-                      theme={theme}
-                      darkMode={settings.darkMode}
-                    />
-                  </div>
+                  {wr && wr.length > 0 && (
+                    <div className="mb-4">
+                      <ExamWrongWordsPanel
+                        wrongWords={wr.filter((r) => r.outcome === 'wrong' || r.outcome === 'skipped')}
+                        theme={theme}
+                        darkMode={settings.darkMode}
+                      />
+                    </div>
+                  )}
                 </>
-              )}
+                );
+              })()}
 
               {/* Kelime özeti */}
               {!examMode && (

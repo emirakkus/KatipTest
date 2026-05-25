@@ -40,6 +40,16 @@ export const ExamCatalog = memo(function ExamCatalog({
 
   const summary = useMemo(() => getExamProgressSummary(progress, exams.length), [progress, exams.length]);
 
+  const solvedExamIds = useMemo(
+    () =>
+      new Set(
+        Object.entries(progress.bestByExam)
+          .filter(([, b]) => (b?.attempts ?? 0) > 0)
+          .map(([id]) => id),
+      ),
+    [progress.bestByExam],
+  );
+
   const filtered = useMemo(() => {
     return exams.filter((e) => {
       if (difficulty !== 'all' && e.difficulty !== difficulty) return false;
@@ -125,6 +135,7 @@ export const ExamCatalog = memo(function ExamCatalog({
           ) : null}
           {filtered.map((exam, index) => {
             const b = progress.bestByExam[exam.id];
+            const solved = solvedExamIds.has(exam.id);
             const active = exam.id === selected?.id;
             return (
               <button
@@ -139,11 +150,18 @@ export const ExamCatalog = memo(function ExamCatalog({
                       : 'border-gray-200 bg-white hover:border-gray-300'
                 }`}
               >
-                <div className="flex justify-between gap-2">
+                <div className="flex justify-between gap-2 items-start">
                   <div className={`font-semibold text-sm ${theme.text}`}>{exam.title}</div>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full shrink-0 ${diffStyle(exam.difficulty)}`}>
-                    {exam.difficulty}
-                  </span>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    {solved && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold">
+                        ✓ Çözüldü
+                      </span>
+                    )}
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full ${diffStyle(exam.difficulty)}`}>
+                      {exam.difficulty}
+                    </span>
+                  </div>
                 </div>
                 <div className={`text-xs mt-1 ${theme.textMuted}`}>
                   {exam.category} · {formatDuration(EXAM_AUTO_DURATION_SEC)} (otomatik)
@@ -164,7 +182,14 @@ export const ExamCatalog = memo(function ExamCatalog({
         {selected && (
           <div className={`${theme.cardBg} ${theme.border} border rounded-2xl p-5 space-y-4 sticky top-4`}>
             <div>
-              <h3 className={`text-lg font-bold ${theme.text}`}>{selected.title}</h3>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className={`text-lg font-bold ${theme.text}`}>{selected.title}</h3>
+                {solvedExamIds.has(selected.id) && (
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-semibold">
+                    ✓ Çözüldü
+                  </span>
+                )}
+              </div>
               <p className={`text-xs ${theme.textMuted} mt-1`}>
                 {selected.category}
                 {selected.source ? ` · ${selected.source}` : ''}

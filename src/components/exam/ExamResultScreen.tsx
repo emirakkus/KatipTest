@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react';
 import type { ExamLiveResult } from '../../exam/types';
 import type { ExamSuggestion } from '../../exam/suggestions';
 import { badgeColor, badgeLabel, formatDuration } from '../../exam/utils';
+import { summarizeWordResults } from '../../exam/wordTracking';
 import { ExamWrongWordsPanel } from './ExamWrongWordsPanel';
 
 interface ThemeTokens {
@@ -32,6 +33,18 @@ export const ExamResultScreen = memo(function ExamResultScreen({
   onMenu,
   onTrainer,
 }: ExamResultScreenProps) {
+  const wordStats = useMemo(() => {
+    const fromResult = {
+      correct: result.correctWordCount,
+      wrong: result.wrongWordCount,
+      skipped: result.skippedWordCount,
+    };
+    const totalFromResult = fromResult.correct + fromResult.wrong + fromResult.skipped;
+    if (totalFromResult > 0) return fromResult;
+    const summary = summarizeWordResults(result.wordResults);
+    return { correct: summary.correct, wrong: summary.wrong, skipped: summary.skipped };
+  }, [result.correctWordCount, result.wrongWordCount, result.skippedWordCount, result.wordResults]);
+
   const wrongWords = useMemo(
     () => result.wordResults.filter((r) => r.outcome === 'wrong' || r.outcome === 'skipped'),
     [result.wordResults],
@@ -52,15 +65,15 @@ export const ExamResultScreen = memo(function ExamResultScreen({
           <div className={`text-xs font-semibold uppercase tracking-wide mb-3 ${theme.textMuted}`}>Kelime</div>
           <div className="grid grid-cols-3 gap-2 text-center">
             <div>
-              <div className="text-2xl font-bold text-green-400">{result.correctWordCount}</div>
+              <div className="text-2xl font-bold text-green-400">{wordStats.correct}</div>
               <div className={`text-[10px] ${theme.textMuted}`}>Doğru</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-red-400">{result.wrongWordCount}</div>
+              <div className="text-2xl font-bold text-red-400">{wordStats.wrong}</div>
               <div className={`text-[10px] ${theme.textMuted}`}>Yanlış</div>
             </div>
             <div>
-              <div className="text-2xl font-bold text-orange-400">{result.skippedWordCount}</div>
+              <div className="text-2xl font-bold text-orange-400">{wordStats.skipped}</div>
               <div className={`text-[10px] ${theme.textMuted}`}>Atlanan</div>
             </div>
           </div>
