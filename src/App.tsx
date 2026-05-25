@@ -4,6 +4,7 @@ import { generateResultPdf } from './utils/pdf';
 import { loadProfile, saveProfile, updateWeakWords, updateDailyLog, generateWeakWordText, checkFatigue, createGoal, generateMissions, claimMissionXP, updateCareer, CAREER_STAGES, type UserProfile, type RhythmPoint, type CareerStage } from './store';
 import { saveContactMessage, signUp, signIn, signOut, getUser, getSession, loadProfileFromDb, getTestHistory, getLeaderboard, saveTestResult, saveProfileToDb, syncToCloud, isDbEnabled } from './db';
 import { LEGAL_PHRASES, SPECIAL_9_MIN_TEXT, TEXTS_EASY, TEXTS_MEDIUM, TEXTS_HARD } from './data/texts';
+import { pickTekerleme, TEKERLEME_DURATION_SEC } from './data/tekerlemeler';
 import {
   loadAnalytics,
   saveAnalytics,
@@ -202,7 +203,8 @@ export default function App() {
     difficultyFilter: 'all',
   });
 
-  const [previousDayChallenge, setPreviousDayChallenge] = useState(false);
+  const [tekerlemeMode, setTekerlemeMode] = useState(false);
+  const [activeTekerlemeTitle, setActiveTekerlemeTitle] = useState('');
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const ambientOscillatorsRef = useRef<OscillatorNode[]>([]);
@@ -569,15 +571,27 @@ export default function App() {
     }
   }, []);
 
-  const startGameWithTime = useCallback((overrideTime?: number, overrideText?: string, isExam: boolean = false, challengeMode: boolean = false) => {
+  const startGameWithTime = useCallback((
+    overrideTime?: number,
+    overrideText?: string,
+    isExam: boolean = false,
+    mode: 'normal' | 'tekerleme' = 'normal'
+  ) => {
     const time = overrideTime || settings.timeLimit;
     setExamMode(isExam);
-    setPreviousDayChallenge(challengeMode);
-    
-    if (overrideText) {
+    setTekerlemeMode(mode === 'tekerleme');
+
+    if (mode === 'tekerleme') {
+      const { item, text } = pickTekerleme(time);
+      setActiveTekerlemeTitle(item.title);
+      setCurrentText(removeTurkishDiacritics(text));
+      setCurrentTextIndex(-2);
+    } else if (overrideText) {
+      setActiveTekerlemeTitle('');
       setCurrentText(removeTurkishDiacritics(overrideText));
       setCurrentTextIndex(-3);
     } else {
+      setActiveTekerlemeTitle('');
       generateNewText(time);
     }
     
@@ -624,7 +638,8 @@ export default function App() {
     setDedicatedExamActive(true);
     setExamMode(false);
     trainerModeRef.current = false;
-    setPreviousDayChallenge(false);
+    setTekerlemeMode(false);
+    setActiveTekerlemeTitle('');
     setCurrentText(session.exam.text);
     setCurrentTextIndex(-3);
     setCurrentWordInput('');
@@ -1265,12 +1280,6 @@ export default function App() {
   }));
   const keyboardLayout = settings.keyboardType === 'F' ? KEYBOARD_LAYOUT_F : KEYBOARD_LAYOUT_Q;
   const latestResult = history[0];
-  const yesterdayDate = new Date(Date.now() - 86400000).toLocaleDateString('tr-TR');
-  const yesterdayResults = history.filter(h => h.date === yesterdayDate);
-  const yesterdayBestWords = safeMax(yesterdayResults.map(h => h.netWords));
-  const yesterdayBestChars = safeMax(yesterdayResults.map(h => h.correctChars));
-  const beatYesterdayWords = latestResult && yesterdayBestWords > 0 && latestResult.netWords > yesterdayBestWords;
-  const beatYesterdayChars = latestResult && yesterdayBestChars > 0 && latestResult.correctChars > yesterdayBestChars;
 
   const coachReport = latestResult ? (() => {
     const originalText = currentText.trim();
@@ -1971,7 +1980,7 @@ export default function App() {
                 { label: 'Isınma', sub: '30 saniye', icon: '🏃', color: 'text-emerald-400', action: () => startGameWithTime(30, undefined, false) },
                 { label: 'Serbest Süre', sub: 'Özel süre', icon: '⏱️', color: 'text-cyan-400', action: () => setShowCustomTime(!showCustomTime) },
                 { label: 'Antrenman', sub: '1 dakika', icon: '🏋️', color: 'text-orange-400', action: () => { setSettings(s => ({ ...s, hardMode: true })); setTimeout(() => startGameWithTime(60, undefined, false), 50); } },
-                { label: 'Dünü Geç', sub: yesterdayResults.length > 0 ? 'Dünün rekorunu kır' : 'Dün skor kaydı yok', icon: '🏁', color: yesterdayResults.length > 0 ? 'text-amber-400' : 'text-slate-400', action: yesterdayResults.length > 0 ? () => startGameWithTime(180, undefined, false, true) : undefined, disabled: yesterdayResults.length === 0 },
+                { label: 'Tekerleme', sub: '3 dk · hız & ritim', icon: '🗣️', color: 'text-fuchsia-400', action: () => startGameWithTime(TEKERLEME_DURATION_SEC, undefined, false, 'tekerleme') },
                 profile.weakWords.length > 0
                   ? { label: 'Zayıf Nokta', sub: `${profile.weakWords.length} kelime`, icon: '🎯', color: 'text-rose-400', action: () => { const wt = generateWeakWordText(profile.weakWords, 150); startGameWithTime(180, wt, false); } }
                   : { label: 'Hedef Belirle', sub: 'Plan kur', icon: '📋', color: 'text-violet-400', action: () => setShowGoalModal(true) },
@@ -2368,10 +2377,12 @@ export default function App() {
 
             {settings.distractionMode && <div className="px-4 py-2 bg-red-500/20 border border-red-500/30 rounded-lg text-center"><span className="text-red-400 font-semibold">🎧 Sınav Salonu Gürültüsü Aktif - Odaklanın!</span></div>}
             {settings.suddenDeath && <div className="px-4 py-2 bg-red-600/20 border border-red-600/30 rounded-lg text-center"><span className="text-red-500 font-semibold">💀 KIRMIZI ÇİZGİ - Tek hata = ELİME!</span></div>}
-            {previousDayChallenge && (
-              <div className="px-4 py-3 bg-amber-500/10 border border-amber-500/25 rounded-lg text-center">
-                <div className="text-sm font-semibold text-amber-300">🏁 Dünü Geç modunda yarışıyorsun</div>
-                <div className="text-xs text-amber-200 mt-1">Dünün en iyi testi: {yesterdayBestWords} kelime / {yesterdayBestChars} doğru karakter.</div>
+            {tekerlemeMode && (
+              <div className="px-4 py-3 bg-fuchsia-500/10 border border-fuchsia-500/25 rounded-lg text-center">
+                <div className="text-sm font-semibold text-fuchsia-300">🗣️ Tekerleme modu · 3 dakika</div>
+                <div className="text-xs text-fuchsia-200/90 mt-1">
+                  {activeTekerlemeTitle || 'Tekerleme'} — ritim ve doğruluk odaklı yaz; hızı kademeli artır.
+                </div>
               </div>
             )}
             {dedicatedExamActive && (
@@ -2628,25 +2639,35 @@ export default function App() {
                 </div>
               </div>
 
-              {previousDayChallenge && (
-                <div className={`mb-6 p-4 rounded-lg ${settings.darkMode ? 'bg-slate-800/60 border-slate-700/70' : 'bg-white border-gray-200'} border`}>
-                  <div className={`font-semibold mb-3 ${theme.text}`}>🏁 Düne Karşı Yarış</div>
-                  {yesterdayBestWords > 0 || yesterdayBestChars > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                      <div className={`rounded-xl p-4 ${settings.darkMode ? 'bg-slate-900/70' : 'bg-gray-50'}`}>
-                        <div className="text-xs text-slate-400 mb-2">Dünün En İyisi</div>
-                        <div className="text-2xl font-bold text-green-400">{yesterdayBestWords} kelime</div>
-                        <div className={`text-xs ${theme.textMuted}`}>Bugün {beatYesterdayWords ? 'geçtin 🎉' : 'geçmek için mücadele et'}</div>
-                      </div>
-                      <div className={`rounded-xl p-4 ${settings.darkMode ? 'bg-slate-900/70' : 'bg-gray-50'}`}>
-                        <div className="text-xs text-slate-400 mb-2">Dünün Doğru Karakteri</div>
-                        <div className="text-2xl font-bold text-green-400">{yesterdayBestChars} karakter</div>
-                        <div className={`text-xs ${theme.textMuted}`}>{beatYesterdayChars ? 'Bugün rekoru kırdın 🎉' : 'Bugün daha iyisini hedefle'}</div>
-                      </div>
+              {tekerlemeMode && history[0] && (
+                <div className={`mb-6 p-4 rounded-lg border ${settings.darkMode ? 'bg-fuchsia-500/10 border-fuchsia-500/30' : 'bg-fuchsia-50 border-fuchsia-200'}`}>
+                  <div className={`font-semibold mb-2 ${theme.text}`}>🗣️ Tekerleme Sonucu — {activeTekerlemeTitle || 'Tekerleme'}</div>
+                  <p className={`text-sm mb-3 ${theme.textMuted}`}>
+                    Tekerlemeler ritim ve parmak hafızası için idealdir. Doğruluğu koruyarak tekrar etmek sınav hızına daha çok katkı sağlar.
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                    <div className={`rounded-xl p-3 text-center ${settings.darkMode ? 'bg-slate-900/70' : 'bg-white'}`}>
+                      <div className="text-xl font-bold text-fuchsia-400">{history[0].netWords}</div>
+                      <div className={`text-xs ${theme.textMuted}`}>Net kelime</div>
                     </div>
-                  ) : (
-                    <div className={`text-sm ${theme.textMuted}`}>Dün henüz kayıtlı bir testin yok. Bugün yeni bir rekor oluşturabilirsin.</div>
-                  )}
+                    <div className={`rounded-xl p-3 text-center ${settings.darkMode ? 'bg-slate-900/70' : 'bg-white'}`}>
+                      <div className="text-xl font-bold text-green-400">
+                        %{history[0].totalChars > 0 ? Math.round(((history[0].totalChars - history[0].incorrectChars) / history[0].totalChars) * 1000) / 10 : 100}
+                      </div>
+                      <div className={`text-xs ${theme.textMuted}`}>Doğruluk</div>
+                    </div>
+                    <div className={`rounded-xl p-3 text-center col-span-2 md:col-span-1 ${settings.darkMode ? 'bg-slate-900/70' : 'bg-white'}`}>
+                      <div className="text-xl font-bold text-amber-400">{history[0].wpm}</div>
+                      <div className={`text-xs ${theme.textMuted}`}>WPM</div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => startGameWithTime(TEKERLEME_DURATION_SEC, undefined, false, 'tekerleme')}
+                    className="mt-3 w-full py-2 rounded-lg text-sm font-semibold bg-fuchsia-500/20 text-fuchsia-400 border border-fuchsia-500/30 hover:bg-fuchsia-500/30"
+                  >
+                    🔄 Yeni tekerleme dene
+                  </button>
                 </div>
               )}
 
@@ -2690,15 +2711,28 @@ export default function App() {
               </div>
               {(Object.keys(analytics.keyStats).length > 0 || (latestResult && latestResult.keyPresses.length > 0)) && (
                 <div className={`${settings.darkMode ? 'bg-slate-700/50' : 'bg-gray-100'} rounded-lg p-4 mb-8`}>
-                  <h3 className={`font-semibold mb-3 flex items-center ${theme.text}`}>
-                    <svg className="w-5 h-5 mr-2 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" /></svg>
-                    Klavye Isı Haritası
-                  </h3>
+                  <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                    <h3 className={`font-semibold flex items-center ${theme.text}`}>
+                      <svg className="w-5 h-5 mr-2 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.879 16.121A3 3 0 1012.015 11L11 14H9c0 .768.293 1.536.879 2.121z" /></svg>
+                      Klavye Isı Haritası
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setGameState('analytics')}
+                      className="text-xs px-3 py-1 rounded-lg bg-amber-500/20 text-amber-400 font-semibold hover:bg-amber-500/30"
+                    >
+                      Detaylı panel →
+                    </button>
+                  </div>
+                  <p className={`text-xs mb-3 ${theme.textMuted}`}>
+                    Koyu tuşlar zayıf veya yavaş basımları gösterir. Analitik panelden harf seçerek özel drill başlatabilirsin.
+                  </p>
                   <KeyboardHeatmap
                     layout={keyboardLayout}
                     keyStats={analytics.keyStats}
                     darkMode={settings.darkMode}
                     mode="weakness"
+                    showModeHint
                   />
                 </div>
               )}

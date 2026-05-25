@@ -72,7 +72,29 @@ function wordsContainingKey(key: string): string[] {
   return WORD_POOL.filter((w) => w.includes(k));
 }
 
-function resolveTargetStats(stats: Record<string, KeyStat>, focus: TrainerFocus): KeyStat[] {
+function resolveTargetStats(
+  stats: Record<string, KeyStat>,
+  focus: TrainerFocus,
+  targetKey?: string
+): KeyStat[] {
+  if (focus === 'letter' && targetKey) {
+    const k = normalizeKey(targetKey);
+    const stat = stats[k];
+    if (stat && stat.totalPresses >= 1) return [stat];
+    return [
+      {
+        key: k,
+        totalPresses: 1,
+        wrongPresses: 1,
+        accuracy: 75,
+        avgReactionMs: 350,
+        consistency: 40,
+        trend: 'stable',
+        weakKeyScore: 45,
+        lastUpdated: Date.now(),
+      },
+    ];
+  }
   if (focus === 'left') {
     return Object.values(stats)
       .filter((s) => LEFT_HAND_KEYS.has(s.key) && s.totalPresses >= 2)
@@ -124,6 +146,39 @@ function pickWordForKey(stat: KeyStat, used: Set<string>): string {
   return word;
 }
 
+/** Tek harfe odaklı drill — kelime tekrarı + harf yoğunluğu */
+function generateLetterDrillText(
+  targetKey: string,
+  difficulty: TrainerDifficulty,
+  stats: Record<string, KeyStat>
+): string {
+  const targetStats = resolveTargetStats(stats, 'letter', targetKey);
+  const wordCount =
+    difficulty === 'easy' ? 28 : difficulty === 'medium' ? 48 : 68;
+  const words = buildWordList(targetStats, wordCount);
+  const key = normalizeKey(targetKey);
+
+  if (difficulty === 'easy') {
+    return words.join(' ');
+  }
+
+  if (difficulty === 'medium') {
+    const doubled = words
+      .filter((w) => w.includes(key))
+      .slice(0, 6)
+      .map((w) => `${w} ${w}`);
+    return [...doubled, ...words].join(' ');
+  }
+
+  let text = words.join(' ');
+  text = injectPunctuation(text, targetStats);
+  const burst = wordsContainingKey(key).slice(0, 4);
+  if (burst.length >= 2) {
+    text = `${burst.join(' ')} ${text}`;
+  }
+  return text;
+}
+
 function buildWordList(targetStats: KeyStat[], wordCount: number): string[] {
   const words: string[] = [];
   const used = new Set<string>();
@@ -157,7 +212,11 @@ export function generateTrainerText(
   stats: Record<string, KeyStat>,
   config: TrainerConfig
 ): string {
-  let targetStats = resolveTargetStats(stats, config.focus);
+  if (config.focus === 'letter' && config.targetKey) {
+    return generateLetterDrillText(config.targetKey, config.difficulty, stats);
+  }
+
+  let targetStats = resolveTargetStats(stats, config.focus, config.targetKey);
   if (targetStats.length === 0) {
     targetStats = defaultStatsForFocus(config.focus);
   }
@@ -176,8 +235,15 @@ export function generateTrainerText(
 }
 
 /** Önizleme: hangi tuşlara odaklanıldığını göster */
-export function describeTrainerFocus(stats: Record<string, KeyStat>, focus: TrainerFocus): string {
-  const targets = resolveTargetStats(stats, focus);
+export function describeTrainerFocus(
+  stats: Record<string, KeyStat>,
+  focus: TrainerFocus,
+  targetKey?: string
+): string {
+  if (focus === 'letter' && targetKey) {
+    return normalizeKey(targetKey).toUpperCase();
+  }
+  const targets = resolveTargetStats(stats, focus, targetKey);
   const keys = (targets.length > 0 ? targets : defaultStatsForFocus(focus))
     .slice(0, 5)
     .map((s) => s.key.toUpperCase())
@@ -185,12 +251,57 @@ export function describeTrainerFocus(stats: Record<string, KeyStat>, focus: Trai
   return keys || '—';
 }
 
+export function previewTrainerText(
+  stats: Record<string, KeyStat>,
+  config: TrainerConfig,
+  maxLen = 140
+): string {
+  const text = generateTrainerText(stats, config);
+  if (text.length <= maxLen) return text;
+  return `${text.slice(0, maxLen).trim()}…`;
+}
+
+export const TRAINER_FOCUS_INFO: Record<
+  TrainerFocus,
+  { title: string; desc: string; icon: string }
+> = {
+  weak: {
+    icon: '🎯',
+    title: 'Zayıf tuşlar',
+    desc: 'En yüksek zayıflık skoruna sahip 10 tuştan kelimeler seçilir; hata yaptığın harfler ağırlıklı tekrarlanır.',
+  },
+  retry: {
+    icon: '🔁',
+    title: 'Tekrar zayıf',
+    desc: 'Son oturumlarda en çok düşen tuşlara odaklanır; aynı hatayı tekrarlamamak için yoğun tekrar.',
+  },
+  left: {
+    icon: '🤚',
+    title: 'Sol el',
+    desc: 'Sol el bölgesindeki (F/Q sol yarı) zayıf tuşlar için kelime drilli.',
+  },
+  right: {
+    icon: '✋',
+    title: 'Sağ el',
+    desc: 'Sağ el bölgesindeki zayıf tuşlar için kelime drilli.',
+  },
+  letter: {
+    icon: '🔤',
+    title: 'Harf bazlı',
+    desc: 'Seçtiğin tek harfi içeren kelimelerle kısa drill; kolayda tekrar, zorda noktalama ve yoğun tekrar.',
+  },
+};
+
+/** Türkçe klavyede sık zorlanan harfler */
+export const COMMON_DRILL_LETTERS = ['ş', 'ı', 'ğ', 'ü', 'ö', 'ç', 'i', 'e', 'a', 'k', 'l', 'r'] as const;
+
 export function trainerLabel(config: TrainerConfig): string {
   const focusLabels: Record<TrainerFocus, string> = {
     weak: 'Zayıf Tuşlar',
     left: 'Sol El',
     right: 'Sağ El',
     retry: 'Tekrar Zayıf',
+    letter: config.targetKey ? `Harf: ${normalizeKey(config.targetKey).toUpperCase()}` : 'Harf Bazlı',
   };
   const diffLabels: Record<TrainerDifficulty, string> = {
     easy: 'Kolay',

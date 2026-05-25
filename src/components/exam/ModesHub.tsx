@@ -39,7 +39,7 @@ export const ModesHub = memo(function ModesHub({
       id: 'trainer',
       icon: '🎯',
       title: 'Antrenör Modu',
-      desc: 'Zayıf tuşlara odaklı kısa drill oturumları',
+      desc: 'Isı haritası, harf bazlı drill ve zayıf tuş antrenmanları',
       color: 'from-rose-500 to-pink-600',
       action: onTrainer,
     },

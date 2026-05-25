@@ -53,12 +53,14 @@ export interface AnalyticsStore {
 }
 
 export type TrainerDifficulty = 'easy' | 'medium' | 'hard';
-export type TrainerFocus = 'weak' | 'left' | 'right' | 'retry';
+export type TrainerFocus = 'weak' | 'left' | 'right' | 'retry' | 'letter';
 
 export interface TrainerConfig {
   durationSec: number;
   difficulty: TrainerDifficulty;
   focus: TrainerFocus;
+  /** Harf bazlı antrenman (focus === 'letter') */
+  targetKey?: string;
 }
 
 export interface ProgressComparison {
