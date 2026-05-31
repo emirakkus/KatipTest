@@ -2490,7 +2490,7 @@ export default function App() {
                       />
                     </span>
                   </div>
-                  {(settings.blurTypedWords || settings.hardMode) && (completedWords.length > 0 || currentWordInput.length > 0) && <div className="absolute bottom-2 right-4 text-xs text-purple-400/80 pointer-events-none">Odak: referans metin</div>}
+                  {(settings.blurTypedWords || settings.hardMode) && (completedWords.length > 0 || currentWordInput.length > 0) && <div className="absolute bottom-2 right-4 text-xs text-purple-400/80 pointer-events-none"></div>}
                 </div>
                 {!settings.zenMode && <div className={`mt-1 text-[11px] ${theme.textMuted} flex flex-wrap items-center gap-2`}>
                   <span className="flex items-center"><kbd className={`px-1.5 py-0.5 rounded font-mono text-[10px] mr-1 ${settings.darkMode ? 'bg-slate-700 text-slate-300' : 'bg-gray-200 text-gray-700'}`}>Space</kbd>Tamamla</span>
