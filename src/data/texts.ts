@@ -345,7 +345,20 @@ export const TEXTS_EASY = [
   'pizzanın hamuru taş fırında odun ateşiyle yavaşça pişirildi',
   'orkestra şefi çubuğunu kaldırarak konserin başlama işaretini verdi',
   'kütüphane görevlisi iade edilen kitapları raflarına özenle yerleştirdi',
-  'bal arıları bahar aylarında çiçekten çiçeğe uçarak polen topladı'
+  'bal arıları bahar aylarında çiçekten çiçeğe uçarak polen topladı',
+  'dil insanlar arasında iletişimi sağlar',
+  'ortak dil toplum bağını güçlendirir',
+  'kültür dil ile gelişir ve yayılır',
+  'mesleki eğitim atölyeleri belirli kurallara göre kullanılır',
+  'atölye gelirleri eğitim amacıyla değerlendirilir',
+  'hükümlüler için sosyal faaliyetler düzenlenebilir',
+  'tüzel kişilik kanunda belirtilen şartlarla kurulur',
+  'fesih tüzel kişiliğin sona erme şeklidir',
+  'ilamlı icra belirli avantajlar sağlar',
+  'icra takibinde dürüstlük kuralı önemlidir'
+  
+
+  
 ];
 export const TEXTS_MEDIUM = [
   'Anne ve babanın çocuğun davranışlarının şekillenmesinde doğru yaklaşım büyük önem taşır',
@@ -492,7 +505,22 @@ export const TEXTS_MEDIUM = [
   'Heykeltıraş dev mermer bloğunu şekillendirirken sadece çekiç ve keski kullanarak ince detaylar üzerinde günlerce çalıştı',
   'Otonom sürüş teknolojisine sahip araçlar çevrelerindeki sensörler yardımıyla şerit takibi yaparak güvenli seyahat imkanı sunar',
   'Bal arılarının tozlaşma sürecine sağladığı katkı dünya genelindeki tarımsal üretimin sürdürülebilirliği için vazgeçilmezdir',
-  'Moda tasarımcıları gelecek sezonun koleksiyonlarını hazırlarken doğadan ilham alan pastel renk tonlarına ağırlık verdi'
+  'Moda tasarımcıları gelecek sezonun koleksiyonlarını hazırlarken doğadan ilham alan pastel renk tonlarına ağırlık verdi',
+  'Bir milletin dili ne kadar anlaşılır ve sade ise toplum içindeki birlik o kadar kuvvetli olur',
+  'Dil yalnızca iletişim aracı değil aynı zamanda milli kimliğin taşıyıcısıdır',
+  'Mesleki eğitim faaliyetlerinden elde edilen gelirler belirlenen usule göre ilgili hesaba aktarılır',
+  'Eğitim programları hükümlülerin kişisel ve mesleki gelişimini desteklemeyi amaçlar',
+  'Tüzel kişilik bazı sistemlerde idari inceleme sonucunda bazı sistemlerde ise kendiliğinden kazanılır',
+  'Tasfiye süreci tüzel kişiliğin malvarlığının hukuka uygun biçimde sona erdirilmesini sağlar',
+  'İcra hukukunda kanunda açık hüküm bulunmayan hallerde genel usul hükümleri uygulanabilir',
+  'Dürüstlük ilkesi tarafların haklarını kullanırken sınırları aşmamasını gerektirir',
+  'suç işlendiğine dair güçlü belirtiler varsa kişi ancak kaçma veya delilleri yok etme ihtimali bulunuyorsa hakim kararıyla tutuklanabilir',
+  'gecikmesinde sakınca bulunan durumlarda hakim kararı olmadan yakalama yapılabilir ancak bu durum kanunda belirlenen şartlara bağlıdır',
+  'yakalanan veya tutuklanan kişiye isnat edilen fiil ve hakları gecikmeden bildirilmelidir',
+  'devletin temel düzenini din esaslarına dayandırmaya yönelik faaliyetler hukuka aykırıdır',
+  'kutsal kabul edilen değerlerin siyasi veya kişisel yarar için kullanılması yasaktır',
+  'ülkenin bütünlüğünü tehdit eden veya suça teşvik eden yayınlar nedeniyle sorumluluk doğabilir',
+  'dağıtımın engellenmesi kararı belirli süre içinde hakimin denetimine sunulmak zorundadır'
 ] as string[];
 export const TEXTS_HARD = [
     'Toplum düzeninin ayakta kalması ve sosyal barışın korunması için kişilerin sahip olduğu hakların hukuk düzeni tarafından korunması gerekir hukukun yalnızca hakları düzenlemekle sınırlı olmayan bir yapısı vardır hukuk düzeni bir yandan hakları tanırken diğer yandan kişinin kendi hakkını kendisinin almasını yasaklayarak bu yetkiyi devlete bırakır',
@@ -628,7 +656,18 @@ export const TEXTS_HARD = [
   'Postmodern mimari akımı modernizmin katı ve işlevselci kurallarına bir tepki olarak doğmuş olup tarihi formları ironik bir dille yeniden yorumlayarak binaların cephelerinde farklı kültürlere ait estetik unsurları eklektik bir yaklaşımla bir araya getirir',
   'Klimatoloji uzmanları atmosferdeki sera gazı konsantrasyonlarının sanayi devrimi öncesi döneme kıyasla eşi benzeri görülmemiş seviyelere ulaştığını ve bu durumun okyanus akıntı sistemlerini geri döndürülemez biçimde bozabileceğini vurgulamaktadır',
   'Etnoarkeolojik araştırmalar günümüzde yaşamaya devam eden geleneksel toplulukların maddi kültür ürünlerini inceleyerek geçmişte yaşamış antik medeniyetlerin sosyal organizasyonları ve üretim ilişkileri hakkında güvenilir varsayımlar oluşturmayı hedefler',
-  'Havacılık endüstrisinde kompozit malzemelerin yoğun kullanımı uçakların toplam ağırlığını ciddi oranda düşürerek hem yakıt tasarrufu sağlamakta hem de aerodinamik sürtünme katsayılarını optimize ederek uçuş menzilini kıtalararası seviyelere çıkarmaktadır'
+  'Havacılık endüstrisinde kompozit malzemelerin yoğun kullanımı uçakların toplam ağırlığını ciddi oranda düşürerek hem yakıt tasarrufu sağlamakta hem de aerodinamik sürtünme katsayılarını optimize ederek uçuş menzilini kıtalararası seviyelere çıkarmaktadır',
+  'Dil bir milletin ortak hafızasını ve kültürel birikimini taşıyan temel unsurdur bireylerin birbirini doğru anlaması toplumsal bütünlüğün korunmasına katkı sağlar ve milli bilincin güçlenmesine zemin hazırlar',
+  'Ceza infaz kurumlarında yürütülen eğitim ve sosyal faaliyetler hükümlülerin yeniden topluma kazandırılmasını hedefler bu kapsamda elde edilen gelirlerin belirlenen esaslara göre kullanılması hukuki sorumluluk gerektirir',
+  'Tüzel kişiliğin kazanılması ve sona ermesi farklı hukuki sistemlere göre değişiklik gösterebilir bazı durumlarda idari izin gerekirken bazı durumlarda kanunda öngörülen şartların gerçekleşmesi yeterli kabul edilir',
+  'İcra ve iflas hukukunda alacaklının takip yolunu seçerken dürüstlük kuralına uygun davranması zorunludur aksi halde yapılan işlem hukuk düzeni tarafından korunmayabilir',
+  'Hukuki işlemlerde usul kurallarına uyulmaması maddi hakkın ileri sürülmesini engelleyebilir bu nedenle şekli şartlar yargılama sürecinde büyük önem taşır',
+  'bir kişinin özgürlüğünden yoksun bırakılabilmesi için suç işlendiğine dair kuvvetli emarelerin bulunması ve tutuklamayı zorunlu kılan somut nedenlerin varlığı gerekir bu şartlar oluşmadıkça hakim kararı olmadan özgürlük kısıtlanamaz',
+  'yakalama tedbiri ancak suçüstü hali veya gecikmesinde ciddi sakınca bulunan durumlarda uygulanabilir ve bu işlemin dayanağı ile kapsamı kanunla açıkça belirlenmiştir',
+  'özgürlüğü kısıtlanan kişilere isnat edilen fiiller ve sahip oldukları haklar gecikmeksizin bildirilir toplu suçlarda dahi bu bilgilendirme en geç hakim önüne çıkarılıncaya kadar yapılmak zorundadır',
+  'devletin sosyal ekonomik ve siyasi yapısını dini esaslara dayandırma amacı taşıyan veya kutsal değerleri nüfuz sağlamak için araç haline getiren davranışlar anayasal düzen bakımından kabul edilemez',
+  'ülkenin bölünmez bütünlüğünü ve güvenliğini tehdit eden ya da halkı isyana teşvik eden nitelikteki yayın faaliyetleri ilgili kanun hükümleri çerçevesinde sorumluluk doğurur',
+  'dağıtımın önlenmesine ilişkin idari kararlar belirli süre içinde yargı denetimine tabi tutulur ve hakim tarafından süresi içinde onaylanmadığı takdirde hukuki sonuç doğurmaz'
 ] as string[];
 export const buildCatalog = (): TextCatalogItem[] => {
   const years = [2021, 2022, 2023, 2024, 2025, 2026];
