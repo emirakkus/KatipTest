@@ -45,7 +45,17 @@ export const LEGAL_PHRASES = {
     'yargılamanın yenilenmesi şartları incelendiğinde',
     'koruma tedbirlerinin ölçülülük ilkesi kapsamında',
     'alternatif uyuşmazlık çözüm yöntemleri çerçevesinde',
-    'bilirkişi heyeti tarafından sunulan kök rapor doğrultusunda'
+    'bilirkişi heyeti tarafından sunulan kök rapor doğrultusunda',
+    'türk medeni kanunu hükümleri uyarınca',
+'dernekler kanunu kapsamında',
+'eşya hukuku ilkeleri gereğince',
+'hukuki ilişkinin niteliği dikkate alındığında',
+'özel hukuk hükümleri çerçevesinde',
+'tüzel kişilik teorileri kapsamında',
+'hakların korunması ilkesi gereğince',
+'öğreti ve içtihatlar doğrultusunda',
+'kişilik hakları kapsamında',
+'mülkiyet hakkının korunması amacıyla'
   ],
 
   subjects: [
@@ -93,7 +103,27 @@ export const LEGAL_PHRASES = {
     'ilamlı ve ilamsız icra takipleri',
     'açık artırma ve ihale süreçleri',
     'denetimli serbestlik müdürlüğü yazışmaları',
-    'hükmün açıklanmasının geri bırakılması kayıtları'
+    'hükmün açıklanmasının geri bırakılması kayıtları',
+    'dernek kuruluş işlemleri',
+'dernek tescil süreci',
+'dernek tüzüğü hazırlanması',
+'tüzel kişilik kazanılması',
+'tüzel kişiliğin sona ermesi',
+'kuruluş bildirimi işlemleri',
+'üyelik işlemleri',
+'hak ehliyeti değerlendirmesi',
+'mutlak hakların uygulanması',
+'ayni hak incelemesi',
+'alacak hakkı değerlendirmesi',
+'eşya hukuku uygulamaları',
+'borç ilişkisinin kurulması',
+'şahsi hak incelemeleri',
+'hak ihlali değerlendirmesi',
+'mülkiyet hakkı kullanımı',
+'hak sahipliği tespiti',
+'borcun ifası süreçleri',
+'hakların korunması usulleri',
+'dernek üyelik kayıt işlemleri'
   ],
 
   actions: [
@@ -179,7 +209,24 @@ export const LEGAL_PHRASES = {
     'illiyet bağı değerlendirildiğinde',
     'hayatın olağan akışına göre',
     'yerinde görülen temyiz itirazları sebebiyle',
-    'vicdani kanaat oluşturulmak suretiyle'
+    'vicdani kanaat oluşturulmak suretiyle',
+    'bu sebeple',
+'bu nedenle',
+'bunun sonucunda',
+'bu çerçevede',
+'hukuki değerlendirme sonucunda',
+'kanuni düzenleme gereği',
+'bu doğrultuda değerlendirildiğinde',
+'ilgili hükümler uyarınca',
+'öğretide kabul edildiği üzere',
+'doktrindeki görüşlere göre',
+'hukuki niteliği itibarıyla',
+'uygulamada kabul edildiği üzere',
+'kanunun lafzı dikkate alındığında',
+'bu açıklamalar ışığında',
+'bu bağlamda',
+'diğer taraftan',
+'öte yandan değerlendirildiğinde'
   ],
 
   legalTerms: [
@@ -252,7 +299,42 @@ export const LEGAL_PHRASES = {
     'vesayet',
     'kayyum',
     'vasi',
-    'müşterek avarya'
+    'müşterek avarya',
+    'tüzel kişilik',
+'dernek',
+'dernek tüzüğü',
+'kuruluş bildirimi',
+'üye',
+'örgütlenme',
+'bağımsızlık',
+'tescil sistemi',
+'kurucu üye',
+'kuruluş unsuru',
+'amaç unsuru',
+'süreklilik',
+'yerleşim yeri',
+'mülki amirlik',
+'ayni hak',
+'şahsi hak',
+'alacak hakkı',
+'mutlak hak',
+'borcun ifası',
+'hak sahibi',
+'eşya hukuku',
+'mülkiyet hakkı',
+'doğrudan hakimiyet',
+'hak ihlali',
+'borçlu',
+'alacaklı',
+'borç ilişkisi',
+'hak ehliyeti',
+'fiil ehliyeti',
+'kişilik',
+'mutlak haklar',
+'nispi hak',
+'malvarlığı',
+'hukuki işlem',
+'hukuki sonuç'
   ]
 };
 /** 9 dakikalık sınav metni — tek paragraf, satır arası boşluksuz (okunabilir akış) */
@@ -445,7 +527,27 @@ export const TEXTS_EASY = [
   'tüzel kişilik kanunda belirtilen şartlarla kurulur',
   'fesih tüzel kişiliğin sona erme şeklidir',
   'ilamlı icra belirli avantajlar sağlar',
-  'icra takibinde dürüstlük kuralı önemlidir'
+  'icra takibinde dürüstlük kuralı önemlidir',
+  'dernekler gerçek veya tüzel kişilerden oluşabilir',
+'derneklerin belirli bir amacı bulunmalıdır',
+'derneklerin kuruluşunda tescil sistemi uygulanır',
+'her derneğin tüzüğü bulunmalıdır',
+'üyeler derneğin temel unsurudur',
+'ayni hak eşya üzerinde hakimiyet sağlar',
+'alacak hakkı şahsi haklar arasında yer alır',
+'borçlu yalnızca kendi borcundan sorumludur',
+'hak sahibi hakkını koruma yetkisine sahiptir',
+'eşya üzerindeki hak herkese karşı ileri sürülebilir',
+'Dil kişinin duygularını açıklamasını sağlar',
+'Dil diğer kişilerle bağlantı kurmayı sağlar',
+'Dil bir medeniyet olayıdır',
+'Türk dili en gelişmiş dillerden biridir',
+'Dilimiz gelişmiştir ve gelişecektir',
+'Ortak dil anlaşmayı kolaylaştırır',
+'Karbon kağıtları yeni ise yumuşak silgi ile silinebilir',
+'Silme işlemi bitince düzeltme yapılır',
+'Silgi kartı kağıttan hazırlanabilir',
+'Kopya birden fazla olabilir'
   
 
   
@@ -610,7 +712,30 @@ export const TEXTS_MEDIUM = [
   'devletin temel düzenini din esaslarına dayandırmaya yönelik faaliyetler hukuka aykırıdır',
   'kutsal kabul edilen değerlerin siyasi veya kişisel yarar için kullanılması yasaktır',
   'ülkenin bütünlüğünü tehdit eden veya suça teşvik eden yayınlar nedeniyle sorumluluk doğabilir',
-  'dağıtımın engellenmesi kararı belirli süre içinde hakimin denetimine sunulmak zorundadır'
+  'dağıtımın engellenmesi kararı belirli süre içinde hakimin denetimine sunulmak zorundadır',
+  'dernekler kazanç paylaşma dışında ortak amaç için kurulan tüzel kişi topluluklarıdır',
+'dernek kurulduktan sonra yeni üyelerin katılması mümkündür',
+'derneğin amacı hukuka aykırı olamaz',
+'üye ve amaç unsurları tek başına dernek için yeterli değildir',
+'derneğin tüzel kişilik kazanması için örgütlenmesi gerekir',
+'tüzük dernek için hukuk normu niteliği taşır',
+'ayni hak kişiye eşya üzerinde doğrudan hakimiyet sağlar',
+'şahsi haklar yalnızca ilgili kişilere karşı ileri sürülebilir',
+'alacak hakkının sahibi yalnızca borçludan talepte bulunabilir',
+'borcun ifasından yalnızca borçlu sorumludur',
+'aynı hakkın korunmasını toplumdaki herkes gözetmek zorundadır',
+  'Karbonlu yazılar silinirken kopyaların kirlenmemesi için silgi kartı kullanılabilir',
+  'Silgi kartı karbon kağıdının parlak yüzü ile başlıklı kağıdın altındaki kopya arasına yerleştirilir',
+  'Önce başlıklı kağıttaki yanlış silinir daha sonra alt kopya düzeltilir',
+  'Yerinde duran silgi kartı elimizin karbona sürünerek kirlenmesini önler',
+  'Kalın karton kullanılırsa kart karbonun boyasız yüzüne konulmalıdır',
+  'Bütün milletleri var eden onların sürekliliğini sağlayan önemli unsurlardan biri dildir',
+  'Bir medeniyetin kurduğu dil başka bir medeniyetin düşündüklerini tam olarak aktaramaz',
+  'Türk milleti bağımsızlığını koruduğu gibi dilini de yabancı etkilerden korumuştur',
+  'Dilin milli ve zengin olması milli duygunun gelişmesini sağlar',
+  'Ortak dil okuyup yazmada güçlük çekilmesini önlemiştir'
+  
+
 ] as string[];
 export const TEXTS_HARD = [
     'Toplum düzeninin ayakta kalması ve sosyal barışın korunması için kişilerin sahip olduğu hakların hukuk düzeni tarafından korunması gerekir hukukun yalnızca hakları düzenlemekle sınırlı olmayan bir yapısı vardır hukuk düzeni bir yandan hakları tanırken diğer yandan kişinin kendi hakkını kendisinin almasını yasaklayarak bu yetkiyi devlete bırakır',
@@ -757,7 +882,22 @@ export const TEXTS_HARD = [
   'özgürlüğü kısıtlanan kişilere isnat edilen fiiller ve sahip oldukları haklar gecikmeksizin bildirilir toplu suçlarda dahi bu bilgilendirme en geç hakim önüne çıkarılıncaya kadar yapılmak zorundadır',
   'devletin sosyal ekonomik ve siyasi yapısını dini esaslara dayandırma amacı taşıyan veya kutsal değerleri nüfuz sağlamak için araç haline getiren davranışlar anayasal düzen bakımından kabul edilemez',
   'ülkenin bölünmez bütünlüğünü ve güvenliğini tehdit eden ya da halkı isyana teşvik eden nitelikteki yayın faaliyetleri ilgili kanun hükümleri çerçevesinde sorumluluk doğurur',
-  'dağıtımın önlenmesine ilişkin idari kararlar belirli süre içinde yargı denetimine tabi tutulur ve hakim tarafından süresi içinde onaylanmadığı takdirde hukuki sonuç doğurmaz'
+  'dağıtımın önlenmesine ilişkin idari kararlar belirli süre içinde yargı denetimine tabi tutulur ve hakim tarafından süresi içinde onaylanmadığı takdirde hukuki sonuç doğurmaz',
+    'medeni kanun ve dernekler kanununa göre dernekler gerçek veya tüzel asgari yedi kişinin kazanç paylaşma dışında belirli ortak amacı gerçekleştirmek üzere çalışmalarını sürekli olarak birleştirmek amacıyla oluşturdukları tüzel kişi topluluklarıdır',
+    'derneğin belirli bir amacı gerçekleştirmesi için belirli bir süre kararlaştırılamaz önemli olan amacın gerçekleşmesidir bu sebeple derneğin üçüncü unsuru sürekliliktir',
+    'üye ve amaç unsurlarının varlığı bu kişi topluluğunun dernek olarak anılması için yeterli değildir bu kişi topluluğunun tüzel kişilik kazanması için örgütlenmesi ve bağımsız olması gerekmektedir',    
+    'türk hukuk sisteminde derneklerin kuruluşunda tescil sistemi benimsenmiştir bunun içindir ki dernek kurucularının yerleşim yerinin bulunduğu yerdeki en büyük mülki amirliğe kuruluş bildirimi yapmaları gerekir',
+    'kişilerin herhangi bir eşya üzerinde sahip olduğu herkese karşı ileri sürülebilen mutlak haklara ayni hak denir',
+    'ayni hak sahibi bu haktan doğan yetkilerini eşya üzerinde doğrudan doğruya kendisi kullanmaya yetkilidir kişinin kullanım haklarını toplumdaki herkes tanımak ve uymak zorundadır',
+    'alacak hakkı mutlak haklardan olmayıp kişinin başkalarına karşı sahip olduğu şahsi haklardandır',
+    'burada gözden kaçırılmaması gereken önemli nokta alacak hakkını sadece borçlu ihlal edebilirken ayni hakkı toplumdaki tüm bireyler ihlal edebilir',
+      'Eğer kopya birden fazla ise üstteki kağıt silindikten sonra silgi kartı alınarak üçüncü kopya için konur ikinci kopya da silinmeye başlanır',
+      'Silgi kartı olarak kalın karton kullanılırsa bu kartın karbonun yüzüne değil de arkasına yani boyasız yüzüne konulması gerekir',
+      'Kaderciliğin hakim olduğu en hayati olaylarla din buyruklarının iç içe bulunduğu ve tenkitçi düşünceye yer vermeyen bir medeniyetten uzaklaşılmıştır',
+      'Bunun yerine din ile devlet işlerinin birbirinden ayrıldığı hür ve ilmi düşünme imkanlarının bulunduğu tenkitçi düşünceyle yeniliklere açık bir medeniyete geçilmiştir',
+      'Türk milleti ülkesinin yüksek bağımsızlığını korumasını bildiği gibi dilini de yabancı diller boyunduruğundan kurtararak medeni dünyadaki yerini almıştır',
+      'Milletimiz dil bütünlüğünü sağlayamamış olsaydı Cumhuriyetimizin sürekliliği tehlikeye düşebilirdi'
+    
 ] as string[];
 export const buildCatalog = (): TextCatalogItem[] => {
   const years = [2021, 2022, 2023, 2024, 2025, 2026];
