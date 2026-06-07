@@ -268,27 +268,27 @@ export const TRAINER_FOCUS_INFO: Record<
   weak: {
     icon: '🎯',
     title: 'Zayıf tuşlar',
-    desc: 'En yüksek zayıflık skoruna sahip 10 tuştan kelimeler seçilir; hata yaptığın harfler ağırlıklı tekrarlanır.',
+    desc: 'En yüksek zayıflık skoruna sahip 10 tuştan kelimeler seçilir; hata yaptığın harfler ağırlıklı tekrarlanır',
   },
   retry: {
     icon: '🔁',
     title: 'Tekrar zayıf',
-    desc: 'Son oturumlarda en çok düşen tuşlara odaklanır; aynı hatayı tekrarlamamak için yoğun tekrar.',
+    desc: 'Son oturumlarda en çok düşen tuşlara odaklanır; aynı hatayı tekrarlamamak için yoğun tekrar',
   },
   left: {
     icon: '🤚',
     title: 'Sol el',
-    desc: 'Sol el bölgesindeki (F/Q sol yarı) zayıf tuşlar için kelime drilli.',
+    desc: 'Sol el bölgesindeki (F/Q sol yarı) zayıf tuşlar için kelime drilli',
   },
   right: {
     icon: '✋',
     title: 'Sağ el',
-    desc: 'Sağ el bölgesindeki zayıf tuşlar için kelime drilli.',
+    desc: 'Sağ el bölgesindeki zayıf tuşlar için kelime drilli',
   },
   letter: {
     icon: '🔤',
     title: 'Harf bazlı',
-    desc: 'Seçtiğin tek harfi içeren kelimelerle kısa drill; kolayda tekrar, zorda noktalama ve yoğun tekrar.',
+    desc: 'Seçtiğin tek harfi içeren kelimelerle kısa drill; kolayda tekrar, zorda noktalama ve yoğun tekrar',
   },
 };
 

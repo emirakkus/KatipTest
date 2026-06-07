@@ -128,6 +128,76 @@ export const TEKERLEMELER: TekerlemeItem[] = [
     text:
       'minare minarecinin minaresidir minareci minareyi yapar minareyi onarır minareyi süsler minare minarecinin emanetidir minare minarecinin alın teridir minare minarecinin göz bebeğidir minare minarecinin minaresidir minareci her sabah minareye çıkar minareden şehre bakar minareden ezan okunur minareden ses yayılır minare şehrin en yüksek noktasıdır minareyi herkes görür minareyi herkes sever minareci minareye baktıkça gururlanır minare minarecinin minaresidir minareyi minareci yıkayıp temizler minarenin taşları parlar minarenin şerefesi parlar minarenin külahı parlar minare bütünüyle parlar minareci sevinir minareci dua eder minare minarecinin minaresidir minarenin minarecisi minarenin minaresi minareci minare minareci minare minare minareci minareci yıllarca minareye baktı minare yıllarca minareciye dayandı yıllar geçti minareci yaşlandı minare hala dimdik durdu yeni minareci geldi eski minareciye saygı duydu minareye birlikte baktılar minare onları da karşıladı minare minarecinin minaresidir minare minarecinin yadigarıdır minareci minareye değer verir minare minareciye değer verir',
   },
+  {
+    id: 'bilmece-kalem',
+    title: 'Kalem Bilmecesi',
+    level: 'kolay',
+    text:
+      'ince uzun bir yolcudur kağıdın üstünde gezer gezerken siyah iz bırakır sesi yoktur ama düşünceyi konuşturur öğrencinin elinde çalışır katibin parmağında hızlanır ucu kırılırsa yeniden açılır yanlış yaparsa silgi yardım ister çantada saklanır masada bekler yazdıkça kısalır ama anlattıkları uzar mektup olur dilekçe olur not olur cevap olur herkes onu tutar fakat o kimseyi tutmaz bu sessiz yazıcı nedir satırlar onunla düzenlenir kelimeler onunla yarışır sınavda hız isteyen eller onu sıkıca kavrar doğru tuş gibi doğru çizgi arar cevabı bilen kalem der',
+  },
+  {
+    id: 'bilmece-saat',
+    title: 'Saat Bilmecesi',
+    level: 'orta',
+    text:
+      'duvarda durur ama evi beklemez kolunda gezer ama yorulmaz tik tak der konuşmaz zamanı gösterir fakat zamanı durdurmaz yüzü vardır gözü yoktur kolları vardır eli yoktur sabahları insanı kaldırır akşamları dinlenmeye çağırır okulun zilini işe gidişi sınavın başlangıcını o haber verir geç kalanı üzebilir erken geleni sevindirebilir dakikaları sayar saniyeleri saklamaz herkes ona bakar ama o kimseye bakmaz bu düzenli bekçi nedir üç dakikalık yazıda da sessizce çalışır acele eden parmakları görünmeden sınar zaman bitince dur der cevap nedir saat',
+  },
+  {
+    id: 'bilmece-anahtar',
+    title: 'Anahtar Bilmecesi',
+    level: 'orta',
+    text:
+      'küçücük gövdesi vardır ama büyük kapıları açar cebinde saklanır kaybolursa evin önü bekleme yerine döner dişleri vardır yemek yemez kilide girer sessizce döner içeride kalan yolu dışarıya bağlar dışarıda kalan yolu içeriye çağırır bazen demirdir bazen renklidir çantada şıngırdar kapının sırrını bilir ama kimseye söylemez doğru yere girerse kapı açılır yanlış yere girerse kapı susar bu küçük çözüm nedir sınav metninde de her kelime bir kilit gibidir doğru yazan aday kapıyı açar yanlış yazan tekrar dener cevap anahtar olur derler',
+  },
+  {
+    id: 'bilmece-ayna',
+    title: 'Ayna Bilmecesi',
+    level: 'kolay',
+    text:
+      'karşısına geçeni olduğu gibi gösterir fakat hiç konuşmaz gülersen güler kaşlarını çatarsan çatık görünür duvarda durur çantada taşınır berberde bekler banyoda parlar yüzü vardır ama kendi yüzünü bilmez ışık gelirse canlanır karanlık olursa susar yalan söylemez ama sesi çıkmaz sağını sol eder solunu sağ eder hazırlanan öğrenci de katip adayı da son kez ona bakar bu sessiz gösterici nedir yazı sınavından önce yakayı düzeltir saçı gösterir yüzü toparlatır insana kendini hatırlatır bakınca sen varsın cevap nedir ayna der herkes bilir',
+  },
+  {
+    id: 'bilmece-bulut',
+    title: 'Bulut Bilmecesi',
+    level: 'kolay',
+    text:
+      'gökyüzünde yürür ama ayağı yoktur rüzgar nereye çağırırsa oraya gider bazen pamuk gibi beyaz bazen kurşun gibi gridir güneşi saklar tarlaya yağmur taşır dağın başına şapka olur denizin suyunu alır sessizce yukarı çıkar sonra damla damla geri bırakır çocuklar şeklini hayvana benzetir yolcular gölgesinde serinler yakalamak istersin eline gelmez bu gezen su deposu nedir sınav metninde adı geçerse parmaklar hızlanır yağmur kelimesi peşinden gelir havaya bakınca cevabı herkes bulur bulut der geçer sonra yazmaya devam eder katip adayı dikkatle yazar',
+  },
+  {
+    id: 'bilmece-ruzgar',
+    title: 'Rüzgar Bilmecesi',
+    level: 'orta',
+    text:
+      'görünmez ama geldiğini herkes anlar yaprağı oynatır perdeyi sallar kapıyı çarpar saçları dağıtır denizde yelkeni şişirir tarlada başakları eğer yazın serinlik getirir kışın üşütür sesi vardır gövdesi yoktur tutulmaz bağlanmaz kovalanmaz ama peşinden toz kaldırır bacadan uğuldar pencereden içeri sızar çocukların uçurtmasını göğe taşır sınav yazısında adı geçince parmaklar hızlı hızlı eser bu görünmez yolcu nedir kimse görmeden gelir kimse tutamadan gider bazen fırtına olur bazen esinti cevap rüzgar diye bilinir aday bunu doğru yazarsa bir kelime daha kazanır hemen',
+  },
+  {
+    id: 'bilmece-kopru',
+    title: 'Köprü Bilmecesi',
+    level: 'orta',
+    text:
+      'iki kıyıyı birbirine kavuşturur altında su akar üstünden insanlar geçer arabalar yürür trenler gider köyü kente yolu yola bağlar bazen taştan yapılır bazen demirden bazen tahtadan olur ayrı duran yerleri yakın eder yolcuya vakit kazandırır nehir konuşmaz o üstünden konuşur yüksekten bakan suyu görür karşıya geçen rahat eder sınavda yazan aday kelimeleri de böyle bağlar bu birleştirici yol nedir bir uçtan başlar öbür uçta biter geçmek isteyen ona güvenir şehirleri buluşturur cevap köprü olur herkes bilir yazınca puan artar hemen',
+  },
+  {
+    id: 'bilmece-semsiye',
+    title: 'Şemsiye Bilmecesi',
+    level: 'kolay',
+    text:
+      'yağmur başlayınca açılır insanı ıslanmaktan korur güneş yakarsa yine gölge olur sapından tutulur kumaşı gerilir kapanınca ince uzun görünür açılınca renkli bir çiçeğe benzer rüzgar sert eserse ters dönebilir çantada bekler kapı yanında kurur pazarda sahilde okul yolunda işe giderken herkes onu arar damlalar üstüne düşer ama altındaki kuru kalır sınavda bu kelimeyi yazan dikkatli olmalıdır bu koruyucu nedir ıslak havanın dostudur bulut görünce hazırlanır yağmur dinince kapanır cevap şemsiye diye yazılır aday hız kazanır ve metne devam eder hemen',
+  },
+  {
+    id: 'bilmece-kitap',
+    title: 'Kitap Bilmecesi',
+    level: 'orta',
+    text:
+      'kapakları vardır ama kapı değildir sayfaları vardır ama ağaçta durmaz içinde bilgi saklar hikaye anlatır masal kurar tarih öğretir sessiz durur fakat okuyanla konuşur rafta bekler çantada taşınır açılınca başka dünyalar görünür öğrenci ondan öğrenir katip adayı ondan kelime tanır eskiyen sayfası bile değer taşır okudukça azalmaz aksine insanın aklını çoğaltır bu sessiz öğretmen nedir sınav metninde adı geçerse parmaklar düzenli yürür çünkü kitap kelimesi kolay görünür ama dikkat ister cevabı bilen kitap der yazmayı sürdürür ve puan toplar hemen',
+  },
+  {
+    id: 'bilmece-golge',
+    title: 'Gölge Bilmecesi',
+    level: 'zor',
+    text:
+      'ışık olunca yanında belirir karanlık olunca kaybolur sen yürürsen yürür sen durursan durur bazen önüne düşer bazen arkanda kalır sabah uzun olur öğlen kısalır akşam yine uzar tutulmaz konuşmaz ama seni bırakmaz duvara çıkar yere serilir ağacın altında serinlik verir çocuğun oyununa şekil olur güneş nereye geçerse o da yer değiştirir bu sessiz takipçi nedir sınavda bu bilmece yazılırken aday ışık kelimesini kaçırmaz cevabı gölge diye düşünür doğru yazarsa kelime kazanır üç dakika içinde hızını ölçer dikkatle devam eder hemen',
+  }
 ];
 
 export function pickTekerleme(forSeconds = TEKERLEME_DURATION_SEC): { item: TekerlemeItem; text: string } {
