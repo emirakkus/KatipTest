@@ -55,7 +55,12 @@ export const LEGAL_PHRASES = {
 'hakların korunması ilkesi gereğince',
 'öğreti ve içtihatlar doğrultusunda',
 'kişilik hakları kapsamında',
-'mülkiyet hakkının korunması amacıyla'
+'mülkiyet hakkının korunması amacıyla',
+'hukuki durumun değerlendirilmesi neticesinde',
+'dosya muhtevası incelendiğinde',
+'yapılan inceleme ve araştırma sonucunda',
+'yargılama sürecinde elde edilen bulgular ışığında',
+'yürütülen tahkikat kapsamında'
   ],
 
   subjects: [
@@ -123,7 +128,13 @@ export const LEGAL_PHRASES = {
 'hak sahipliği tespiti',
 'borcun ifası süreçleri',
 'hakların korunması usulleri',
-'dernek üyelik kayıt işlemleri'
+'dernek üyelik kayıt işlemleri',
+'duruşma zabıtlarının düzenlenmesi',
+'uyap üzerinden işlem takibi',
+'icra takip dosyalarının yönetimi',
+'adli yazışmaların yürütülmesi',
+'mahkeme kararlarının arşivlenmesi'
+
   ],
 
   actions: [
@@ -166,7 +177,12 @@ export const LEGAL_PHRASES = {
     'yakalama infaz evrakı düzenlenmektedir',
     'kolluk kuvvetlerine müzekkere yazılmaktadır',
     'hazineye irat kaydedilmektedir',
-    'gider avansından karşılanmaktadır'
+    'gider avansından karşılanmaktadır',
+    'sisteme kaydedilmektedir',
+    'işlem tamamlanarak dosyaya kaldırılmaktadır',
+    'ilgili birime sevk edilmektedir',
+    'esas kaydına işlenmektedir',
+    'yasal prosedür gereği yürütülmektedir'
   ],
 
   connectors: [
@@ -226,7 +242,12 @@ export const LEGAL_PHRASES = {
 'bu açıklamalar ışığında',
 'bu bağlamda',
 'diğer taraftan',
-'öte yandan değerlendirildiğinde'
+'öte yandan değerlendirildiğinde',
+'bu doğrultuda değerlendirildiğinde',
+'buna müteakip',
+'söz konusu durum karşısında',
+'ilgili hususlar birlikte ele alındığında',
+'yapılan değerlendirme çerçevesinde'
   ],
 
   legalTerms: [
@@ -334,7 +355,12 @@ export const LEGAL_PHRASES = {
 'nispi hak',
 'malvarlığı',
 'hukuki işlem',
-'hukuki sonuç'
+'hukuki sonuç',
+'hukuki dinlenilme hakkı',
+'savunma hakkının kısıtlanması',
+'delil serbestisi ilkesi',
+'hükmün açıklanmasının geri bırakılması',
+'kamu davasının düşmesi'
   ]
 };
 /** 9 dakikalık sınav metni — tek paragraf, satır arası boşluksuz (okunabilir akış) */
@@ -547,7 +573,37 @@ export const TEXTS_EASY = [
 'Karbon kağıtları yeni ise yumuşak silgi ile silinebilir',
 'Silme işlemi bitince düzeltme yapılır',
 'Silgi kartı kağıttan hazırlanabilir',
-'Kopya birden fazla olabilir'
+'Kopya birden fazla olabilir',
+'hipertansiyon sistemik arteriyel kan basıncının devamlı yükselmesi ile kendini gösteren bir kalp damar hastalığıdır',
+'hipertansiyon zamanla ciddi kardiyovasküler komplikasyonlara yol açar',
+'şöyle ki yaşlı hipertansiyonlularda sistolik basınç daha önemlidir',
+'yaşlı olmayan olgularda diyastolik basınç daha önemlidir',
+'hipertansiyon esansiyel ve sekonder olarak ikiye ayrılır',
+'hipertansiyon uzun yıllar belirti vermeyebilir',
+'ilerleyen dönemde ciddi komplikasyonlar ortaya çıkabilir',
+'esansiyel hipertansiyon olgularında bazal renin düzeyi azalmıştır',
+  'bu gruptaki hastalarda damar daralması belirgin değildir',
+  'kan basıncı yükselmesinin nedeni sodyum tutulmasıdır',
+  'sodyum tutulması dolaşan kan hacmini artırır',
+  'bu hastalarda prognoz genellikle iyidir',
+  'hipertansiyon yaşam süresini etkileyebilir',
+  'tuza duyarlı hastalarda tansiyon daha kolay yükselir',
+  'hipertansiyon heterojen bir klinik antite olarak kabul edilir',
+  'kan hacmindeki artış sistemik arteriyel basınçta yükselmeye neden olur',
+  'venöz dönüş azalması kalp debisinin düşmesine yol açar',
+  'arteriyol duvar kalınlaşması periferik damar direncini artırır',
+  'hipertansiyonun uzun süre asemptomatik seyretmesi tanıyı geciktirir',
+  'hipervolemi kan basıncında kalıcı yükselmeye katkıda bulunur',
+  'baroreseptör duyarlılığı kronik hipertansiyonda azalabilir',
+  'renal sodyum atılımındaki azalma hipertansiyon gelişimine zemin hazırlar',
+  'stabil olmayan anginada kalsiyum antagonistlerinin yeri nitratlar ve beta blokörlerden sonra gelir',
+  'angina tedavisinde kalsiyum antagonistleri tek başına veya nitratlarla kombine olarak kullanılabilir',
+  'dihidropiridin türevleri beta blokörlerle birlikte kullanılabilir',
+  'verapamil ve diltiazem kalp kası ve damar düz kası üzerinde etkilidir',
+  'kalsiyum antagonistleri koroner damarları genişletir',
+  'dihidropiridin türevleri damar düz kası üzerinde daha belirgin etkilidir',
+  'angina tedavisinde ilaç kombinasyonları antianginal etkiyi artırabilir',
+  'akut myokard infarktusunda kalsiyum antagonistlerinin yeri sınırlıdır'
   
 
   
@@ -733,7 +789,45 @@ export const TEXTS_MEDIUM = [
   'Bir medeniyetin kurduğu dil başka bir medeniyetin düşündüklerini tam olarak aktaramaz',
   'Türk milleti bağımsızlığını koruduğu gibi dilini de yabancı etkilerden korumuştur',
   'Dilin milli ve zengin olması milli duygunun gelişmesini sağlar',
-  'Ortak dil okuyup yazmada güçlük çekilmesini önlemiştir'
+  'Ortak dil okuyup yazmada güçlük çekilmesini önlemiştir',
+  'kardiyovasküler riske sistolik ve diyastolik basınçtaki yükselmenin katkısı yaşa göre farklılık gösterir',
+  'esansiyel hipertansiyon olguların büyük kısmını oluşturur',
+  'sekonder hipertansiyon böbrek ve endokrin hastalıklara bağlı gelişebilir',
+  'ilaçlara bağlı olarak geçici sekonder hipertansiyon gelişebilir',
+  'esansiyel hipertansiyonda temel mekanizma periferik damar direncinin artmasıdır',
+  'hipertansiyonun gelişme hızı bireyler arasında değişkenlik gösterir',
+  'tedaviye uyum sağlamak bazı hastalarda zor olabilir',
+  'çevresel ve genetik faktörler hipertansiyon gelişiminde rol oynar',
+  'ateroskleroz hipertansiyonla birlikte görülebilen önemli bir risk faktörüdür',
+  'esansiyel hipertansiyon olgularında vazokonstriksiyon genellikle fazla değildir',
+  'serebrovasküler ve kardiyak komplikasyonlar daha geç ve seyrek görülür',
+  'yaşlı hastalarda sistolik hipertansiyon daha belirgindir',
+  'düşük reninli hipertansiyon bazı olgularda hormon artışı ile ilişkili olabilir',
+  'sodyum alımındaki artış kan basıncını yükseltir',
+  'böbreklerin sodyum atılım kapasitesi bazı hastalarda azalmış olabilir',
+  'arter duvarlarında kalınlaşma ve elastikiyet azalması görülür',
+  'hipertansiyon gelişiminde çevresel ve genetik faktörler rol oynar',
+  'baroreseptörler kan basıncının düzenlenmesinde görev yapar',
+  'damar duvarındaki yapısal değişiklikler baroreseptör yanıtını etkiler',
+  'kapasitans damarlar postüral kan basıncı düzenlenmesinde önemli rol oynar',
+  'sodyuma duyarlı hipertansiyon olgularında tuz alımı kan basıncını belirgin artırır',
+  'venöz tonus değişiklikleri kalbe dönen kan miktarını ve kalp debisini etkiler',
+  'postüral değişikliklerde sempatik sistem damar tonusunu düzenler',
+  'endotel disfonksiyonu hipertansif damarlarda gevşeme yanıtını azaltır',
+  'hipertansiyonun patogenezinde genetik ve çevresel faktörler birlikte rol oynar',
+  'sempatik aktivite artışı genellikle esansiyel hipertansiyonda primer mekanizma değildir',
+  'dihidropiridin türevlerinin yavaş salan formları nifedipinin sakıncalarını azaltabilir',
+  'nifedipin genellikle beta blokörlerle kombine kullanıldığında daha güvenlidir',
+  'koroner spazm varlığında kalsiyum antagonistlerinin terapötik etkinliği artar',
+  'dihidropiridin grubu ilaçlar hemodinamik olarak birbirine benzer etki gösterir',
+  'verapamil ve diltiazem miyokard oksijen tüketimini azaltır',
+  'akut q dalgasız infarktta diltiazem kullanılabilir',
+  'sekonder profilakside dihidropiridin türevleri tercih edilebilir',
+  'kalsiyum kanal antagonistleri selektif ve non selektif olarak sınıflandırılır',
+  'flunarizin ve benzer ilaçlar farklı farmakolojik gruba dahildir',
+  'vazoselektiflik ilaçların damar düz kas üzerindeki seçiciliğini ifade eder',
+  'verapamil ve diltiazem beta blokörlerle birlikte bazı riskler oluşturabilir',
+  'kalsiyum antagonistlerinin hemodinamik etkileri angina tedavisinde önemlidir'
   
 
 ] as string[];
@@ -896,7 +990,49 @@ export const TEXTS_HARD = [
       'Kaderciliğin hakim olduğu en hayati olaylarla din buyruklarının iç içe bulunduğu ve tenkitçi düşünceye yer vermeyen bir medeniyetten uzaklaşılmıştır',
       'Bunun yerine din ile devlet işlerinin birbirinden ayrıldığı hür ve ilmi düşünme imkanlarının bulunduğu tenkitçi düşünceyle yeniliklere açık bir medeniyete geçilmiştir',
       'Türk milleti ülkesinin yüksek bağımsızlığını korumasını bildiği gibi dilini de yabancı diller boyunduruğundan kurtararak medeni dünyadaki yerini almıştır',
-      'Milletimiz dil bütünlüğünü sağlayamamış olsaydı Cumhuriyetimizin sürekliliği tehlikeye düşebilirdi'
+      'Milletimiz dil bütünlüğünü sağlayamamış olsaydı Cumhuriyetimizin sürekliliği tehlikeye düşebilirdi',
+      'esansiyel hipertansiyonun patogenezinde heredite olguların yarıya yakınında rol oynar',
+      'prekapiler rezistans damarlarındaki yapısal bozukluk periferik direnç artışına neden olur',
+      'ileri yaşta aort ve büyük damarların elastikiyet kaybı sistolik hipertansiyona katkı sağlar',
+      'endotel disfonksiyonu hipertansiyonda damar gevşemesinin azalmasına yol açar',
+      'büyüme faktörleri ve vazokonstriktör maddeler damar yapısal değişikliklerini artırır',
+      'sempatoadrenal sistem çoğu esansiyel hipertansiyon olgusunda belirgin artış göstermez',
+      'bazı olgularda plazma katekolamin düzeyi artmış olabilir',
+      'renin anjiyotensin sisteminin aktivitesi bazı hipertansiyon olgularında yüksektir',
+      'yüksek reninli hipertansiyon olgularında kardiyovasküler risk daha fazladır',
+      'yaş ilerledikçe renin düzeyi azalır ve yüksek reninli olgular daha az görülür',
+      'esansiyel hipertansiyonda hücre içi sodyum ve kalsiyum artışı patogenezde rol oynayabilir',
+  'transgenik modellerde renin geninin aktarılması kalıtsal hipertansiyona yol açabilir',
+  'doku renin sistemi plazma renin düzeyinden bağımsız olarak aktif olabilir',
+  'proksimal tübüllerde alfa adrenerjik reseptör yoğunluğu artışı sodyum geri emilimini artırabilir',
+  'hipotalamik natriüretik hormon benzeri maddeler sodyum dengesinde rol oynayabilir',
+  'baroreseptör duyarlılığı hipertansiyonda azalabilir',
+  'damar duvarındaki yapısal değişiklikler baroreseptör yanıtını etkiler',
+  'renin anjiyotensin sisteminin lokal aktivasyonu hipertansiyon patogenezinde rol oynayabilir',
+  'bazı olgularda düşük plazma reninine rağmen doku düzeyinde renin aktivitesi artmıştır',
+  'baroreseptör adaptasyonunun hipertansiyonun nedeni mi sonucu mu olduğu kesin değildir',
+  'renin anjiyotensin sisteminin lokal aktivasyonu hipertansiyon patogenezinde rol oynayabilir',
+  'bazı olgularda düşük plazma reninine rağmen doku düzeyinde renin aktivitesi artmıştır',
+  'baroreseptör adaptasyonunun hipertansiyonun nedeni mi sonucu mu olduğu kesin değildir',
+  'doku renin aktivitesinin artışı plazma renin düzeyinden bağımsız olabilir',
+  'arteriyollerde düz kas hücrelerinde sodyum birikimi hücre içi kalsiyum artışına yol açar',
+  'renin anjiyotensin sistemi damar tonusunun düzenlenmesinde kritik rol oynar',
+  'hipertansif hastalarda damar elastikiyetinde azalma gözlenir',
+  'baroreseptör yanıtındaki adaptasyon kronik basınç değişikliklerine bağlıdır',
+  'klinik çalışmalar kalsiyum antagonistlerinin akut miyokard infarktüsünde mortaliteyi azaltmadığını göstermiştir',
+  'verapamil ve diltiazem negatif inotrop etki göstererek kalp yetmezliği riskini artırabilir',
+  'sinoatriyal ve atriyoventriküler blok riski bu ilaçlarla artabilir',
+  'bazı kalsiyum antagonistleri refleks sempatik stimülasyon oluşturabilir',
+  'l tipi kalsiyum kanalı heterooligomerik alt birimlerden oluşur',
+  'fenilalkilamin ve benzotiazepin bağlanma bölgeleri allosterik etkileşim göstermez',
+  'kalsiyum kanal antagonistleri iyon kanallarına selektiflik gösterir',
+  'dihidropiridinler vasküler düz kas üzerinde daha selektif etkilidir',
+  'verapamil ve diltiazem hem kalp kası hem damar düz kasında etkilidir',
+  'vazoselektiflik EC oranı ile deneysel olarak belirlenir',
+  'felodipin nifedipine göre daha yüksek vazoselektiflik gösterir',
+  'kalsiyum antagonistlerinin sınıflandırılması farmakolojik özelliklerine göre yapılır',
+  'non selektif antagonistler sodyum kanallarını da etkileyebilir',
+  'farmakodinamik farklılıklar klinik kullanım tercihlerini belirler'
     
 ] as string[];
 export const buildCatalog = (): TextCatalogItem[] => {
