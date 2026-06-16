@@ -197,6 +197,41 @@ export const TEKERLEMELER: TekerlemeItem[] = [
     level: 'zor',
     text:
       'ışık olunca yanında belirir karanlık olunca kaybolur sen yürürsen yürür sen durursan durur bazen önüne düşer bazen arkanda kalır sabah uzun olur öğlen kısalır akşam yine uzar tutulmaz konuşmaz ama seni bırakmaz duvara çıkar yere serilir ağacın altında serinlik verir çocuğun oyununa şekil olur güneş nereye geçerse o da yer değiştirir bu sessiz takipçi nedir sınavda bu bilmece yazılırken aday ışık kelimesini kaçırmaz cevabı gölge diye düşünür doğru yazarsa kelime kazanır üç dakika içinde hızını ölçer dikkatle devam eder hemen',
+  },
+  {
+    id: 'tekerleme-tek',
+    title: 'Uzun Tekerleme Metni',
+    level: 'zor',
+    text:
+      'Karakış Karlıdağı karla kavururken kırk kulaklı Kasım kırk kırık küp ve kırk kuzu ile Kırkız Kalesi kapısında kargalarını kızgın kargılarla dağladı Kıyma kıyamayan kırık kollu kasap Keramettin karşıda körkütük kıyma kıyan kasap Kâmil den kokmuş kokoreç aldı Söyle kızım kızına o da söylesin kızının kızına ağlatmasın kızınızın kızı kızımızın kızını Koca kokoz kokainman Kazablankalı kozmonot Kösler e kök kok köken kokoreç köknar köçekçe krematoryum ne diye sormuş Kâni nin kafası Kâbil i kabul etmez Yalancıoğlu Yayla Dağı nın yahnisini yer ama yağlı yoğurdundan vazgeçemez Yitik yerleri yollarda yorgunluktan yürüyerek yakaladılar Bu yapıyı yıkıp yapsak da mı otursak yoksa yapmadan otursak da mı yıkıp yapsak Güneyli Galip Gavurdağı nda güpegündüz Gümüşhane ye gönderildi Çatalcı çatal yapar bakkal bakraç vermez gemici gemiyi yürütür serçe serçeye öter kara kedi kara kapıda bekler bulut gökyüzünde yürür rüzgar görünmez ama eser gölge ışıkla birlikte yürür ayna her şeyi gösterir kitap bilgi taşır kalem yazıyı taşır saat zamanı gösterir anahtar kapıyı açar köprü iki kıyıyı birleştirir şemsiye yağmurdan korur bu metin sınav hız ve dikkat ölçmek için tekrar tekrar okunur kelimeler birbirine karışsa da aday doğru yazmaya çalışır dikkat eden kazanır hızlı yazan süreyi yetiştirir doğru yazan puanı alır'
+  },
+  {
+    id: 'tekerleme-tek',
+    title: 'Uzun Tekerleme Metni',
+    level: 'zor',
+    text:
+      'Geçen gece Gemerek ten Gediz e gelen Gebzeli gezginci gizemcilerden gitarist general Genzel gençlere gerçek dışılıkla gerçeklik dışı ilişkiler arasında ne gibi bir geçerlilik gerçekliliği olduğunu sordu Gül dibi bülbül dili gibi gül dibi bülbül dili Galata Kulesi kapısı karşısındaki kuru kahvecinin gıgısı çıkık dişi kırık kurbağa kafalı karakoncoloz kalfası halkı karışıklığa getirip kahveye kavruk kakula kırığı kattı Bu yoğurdu mayalamalı da mı saklamalı mayalamamalı da mı saklamalı Sizin damda var beş boz başlı beş boz ördek bizim damda var beş boz başlı beş boz ördek sizin damdaki beş boz başlı beş boz ördek bizim damdaki beş boz başlı beş boz ördeğe siz de bizcileyin beş boz başlı beş boz ördek misiniz dedi Değirmene girdi köpek değirmenci çaldı kötek hem kepek yedi köpek hem kötek yedi köpek Hahamhanede hahambaşı hahamı homur homur homurdanır görünce hemencecik heyecanlandı hızlandı hoşnutsuz hırçın hırçın giderken birdenbire karşısında beliriveren Hollandalı Helyga ya hah tamam haydi hohla hemen hoh de bakayım dedi'
+  },
+  {
+    id: 'tekerleme-tek',
+    title: 'D Harfi Tekerleme Metni',
+    level: 'zor',
+    text:
+      'Dadaylı dayımın Dodurgalı düdük deli dedesi diline doladığı debdebeli dedim dedisiyle dırdırını dilinden düşürüp de bir kez olsun doya doya düden diyemeden düdenin dallara doldurduğunu doyumlu yemişlerden doyasıya yiyemeden dar dünyadan göçüp gitti Dilenci dalları dama düşürdüğü için mi dövüldü dama düşen dalları diline doladığı için mi dövüldü Düşkün düşündeş düşünselde düşçü düşünsellikle düşünceleme düşselliğini düşünden düşüremez düşürürse eğer düşüncelik düşüncesizlikle düşündürücü bir düşünsellik kazanır Vedat ı caddede durdurdum da dedim ki şu dar dünyada delilerle dertli dedeler içinde didindin durdun da kendi derdini döküp dereden tepeden dört çift lakırdı edecek bir hemderdi neden bulamadın Damdan geldim dedem dedim demli çay istiyor Keşmekeşli kekeme Kerim Kendirlili ketenhelvacısına kemik kekik kendir kenevir sattı Karaburunlu kabadayı Kadir kafakâğıdını Kadirlili kapkaççı Kasım la Kahire deki Kalecikliler kahvehanesinde kalamarla kafuru satan kaparozcu Kuzguncuklu Kozmonot Kâzım a kaptırmış Didim didim dit dedim dedeme dom dom konuşma Dum dum kurşunu dum dum değil dom dom patlar Dım dım da dım dım ben bu dımdımdan bıktım'
+  },
+  {
+    id: 'tekerleme-119',
+    title: 'Hece ve Kelime Akış Tekerlemesi',
+    level: 'kolay',
+    text:
+      'Kat kat kek al kek ile elma ye yaş kek ile yay al ütü ile eti al ümit iyi kat tut elma ekşi imiş Ali iki maşa et yemiş Tay iyi yem yemiş iki kişi Mete ile alay etmiş iki iyi şiş al Mete şaka ile iki kuş eti yemiş Lale Ali ile alay etmiş Uşak mama ile kek yemiş Umut iyi uyku uyu yay iyi imiş iki kama ile iki mama al yaş keki tek tek al tilki iyi uyumuş aşk tüm işi yaş etmiş Ali taka ile tam iki takla at Ümit takaya elma ile tamek alma Ali iyi nane al Maya iyi tutmuş iyi taş atan anam Muşta iyi nam almış iki kişi Kayayı met etmiş unu nane ile kaynat Anam Muştan iyi elma almış etin iyi yanı yanmış Nalan iki ay matem tuttu namlı meltem yeli ılık ılıktı ışın unu elek ile ele yaş elin ile işe taş atma nalın tam yaştı ninem tın tınmış'
+  },
+  {
+    id: 'tekerleme-120',
+    title: 'D ve G Harf Yoğunluk Metni',
+    level: 'orta',
+    text:
+      'Adam demin en sert demiri delik deşik etti iki adım git dur dadım dik yürür cadı kadın dün iki sade oda tuttu gem ata dar geldi dün gemi ile gelen adam senin dayındı gara giren katar giysi ile dolu idi dün yaş günü olan dadım yeniden Gamze adını aldı oyunda ilk golü atan Demir Giyim adlı takım güzel oynadı dayım dün saat ikiye dek gelin ile odada oturdu dadım dün Gani ile saat ikide gara gitti damda yatan kedi ona gaga atan kuşu yedi güz geldi gezme işi sona erdi eğer gemi erken gelirse o adam da takımda oynar sarı tüle demin zam geldi tren gelince insan garda dik yürür Van valisi Hamit Alevdir Veli sorumlu olan kişidir hava ve ova kelimesi v ile yazılır evin hattı dahi yok Hasan Han halkı da avı da sever Hale ivaz vermez Halil ve hakim eve gitti Han ve hamam şu eve yakın ova halkı her gün kova kova su taşır dahi insan hem iyi huylu hem de düzenlidir'
   }
 ];
 

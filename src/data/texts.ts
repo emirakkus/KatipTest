@@ -603,7 +603,29 @@ export const TEXTS_EASY = [
   'kalsiyum antagonistleri koroner damarları genişletir',
   'dihidropiridin türevleri damar düz kası üzerinde daha belirgin etkilidir',
   'angina tedavisinde ilaç kombinasyonları antianginal etkiyi artırabilir',
-  'akut myokard infarktusunda kalsiyum antagonistlerinin yeri sınırlıdır'
+  'akut myokard infarktusunda kalsiyum antagonistlerinin yeri sınırlıdır',
+    'Kırık kasette sessiz sesler sallanır harfler metne karışır yazı akışı bozulur',
+    'Dikkatli katip tipi yazarken tekrar eder ve metin bozulur hız artar',
+    'Sessiz sokakta kat kat kilitli kapılar açılır kapanır ritim duyulur gece uzar',
+    'Kelle koltukta giden asker ters düz kelimelerle yazı bozulur anlam kayar',
+    'Kalemle gelen kelimeler ters yazılır dünya karışır zihin yön değiştirir',
+    'Titrek teller titrerken sesler yankı yapar sessizliği büyütür ortam ağırlaşır',
+    'Bükük parmak daktiloda hızlı yazarken tekrarlar ritmi bozar yazı hızlanır',
+    'Gizli gizemli metinde ters düz harfler akışı değiştirir anlam yön değiştirir',
+    'Kapatılan kapılar klik klik sesle düzenine dönüşür ve yazı akar devam eder',
+    'Yazı hızlanınca kelimeler karışır tekrar eder anlam kayar düşünce dağılır',
+      'İcra takibi borcun ödenmemesi halinde alacaklının başlattığı hukuki süreçtir',
+      'İcra dairesi borçlunun mal varlığını tespit ederek haciz işlemi yapabilir',
+      'Haciz kararı ile borçlunun taşınır ve taşınmaz mallarına el konulabilir',
+      'İcra hukukunda ödeme emri borçluya tebliğ edilmeden takip kesinleşmez',
+      'Borçlu süresi içinde itiraz etmezse icra takibi kesinleşmiş sayılır',
+      'İcra mahkemesi icra işlemlerine karşı yapılan şikayetleri inceler ve karara bağlar',
+      'Kambiyo senetlerine özgü icra takibi çek senet ve poliçeler için uygulanır',
+      'Haczedilen mallar satışa çıkarılarak alacaklının alacağı tahsil edilir',
+      'İcra müdürlüğü tüm takip işlemlerini kanuna uygun şekilde yürütmekle görevlidir',
+      'Borçlu ödeme yaparsa icra dosyası kapanır ve takip sona erer',
+      'Yapay zeka teknolojileri iş dünyasında otomasyon süreçlerini hızlandırarak verimliliği artırıyor'
+      
   
 
   
@@ -827,7 +849,28 @@ export const TEXTS_MEDIUM = [
   'flunarizin ve benzer ilaçlar farklı farmakolojik gruba dahildir',
   'vazoselektiflik ilaçların damar düz kas üzerindeki seçiciliğini ifade eder',
   'verapamil ve diltiazem beta blokörlerle birlikte bazı riskler oluşturabilir',
-  'kalsiyum antagonistlerinin hemodinamik etkileri angina tedavisinde önemlidir'
+  'kalsiyum antagonistlerinin hemodinamik etkileri angina tedavisinde önemlidir',
+  'Şu karşıki şaşkın şoför şemsiyesiz şurupçudan şekerli şurup satın aldı',
+'Bir berber bir berbere bre berber gel beraber bir berber dükkânı açalım demiş',
+'Şu köşe yaz köşesi şu köşe kış köşesi ortada su şişesi',
+'Dal sarkar kartal kalkar kartal kalkar dal sarkar',
+'Çatalcada topal çoban çatal yapıp çatal satar',
+'Bir pirinç tenceresi bir pirinç tenceresine demiş ki ben pirinç tenceresiyim',
+'Şemsipaşa pasajında sesi büzüşesiceler',
+'Üç tunç tas hoşaf üç taşlı taç saplı üç tunç tas',
+'Bir tombul kuş uçmuş biri tutmuş biri kaçmış',
+'Şu yoğurdu sarımsaklasak da mı saklasak sarımsaklamasak da mı saklasak',
+  'Kırık küp kırk kez köşeden köşeye taşınırken köylü kıkırdayarak izledi',
+  'Gümüşten yapılmış küçük kürek gölde kürek çeken genç tarafından düşürüldü',
+  'Rüzgarlı ovada koşan atlılar hızlıca yön değiştirerek dar patikaya girdi',
+  'Minik martı liman kenarında martı sesleri arasında balık avını izledi',
+  'Sarı samanlı samanlıkta saklanan sapan sessizce duvara yaslandı',
+  'Gece yarısı gelen garip gemici gemisini gıcırdayan iskeleye bağladı',
+  'Karanlık mağarada kayan taşlar yankı yaparak derin boşluğa düştü',
+  'Yağmur altında yürüyen yaşlı adam yol kenarında yavaşça durup dinlendi',
+  'Eski tren istasyonunda duran kırmızı vagon rüzgarla hafifçe sallandı',
+  'Bahar sabahında açan çiçekler arıların uğultusuyla birlikte canlandı'
+
   
 
 ] as string[];
