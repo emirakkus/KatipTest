@@ -475,7 +475,15 @@ export const TEXTS_EASY = [
   'sistem üzerinden belge çıktısı alındı',
   'mahkeme kalemi günlük işlemleri tamamladı',
   'arşiv dosyası yerleştirme işlemi yapıldı',
-  'zabıt katibi kayıt işlemlerini dikkatle sürdürdü'
+  'zabıt katibi kayıt işlemlerini dikkatle sürdürdü',
+  'anayasamızda da güvence altına alınan ceza sorumluluğunun kişiselliği kuralının gereği olarak sadece gerçek kişiler hakkında ceza yaptırımına hükmedilebilir',
+'özel hukuk tüzel kişileri hakkında güvenlik tedbiri niteliğinde yaptırımlara hükmedilmesine engel değildir',
+'maddede öngörülen ilk güvenlik tedbiri faaliyet izninin iptalidir',
+'işlenen suçla verilen iznin kullanılması arasında nedensellik bağı olmalıdır',
+'özel hukuk tüzel kişisinin organ veya temsilcilerinin bu suçun işlenmesine iştirak etmeleri gerekir',
+'özel hukuk tüzel kişileri bakımından öngörülen ikinci güvenlik tedbiri ise müsaderedir',
+'suçla bağlantılı olan eşya ve maddi çıkarların müsaderesine hükmedilecektir',
+'bu halde iyi niyetli üçüncü kişilerin hakları korunacaktır'
 ];
 
 export const TEXTS_MEDIUM = [
@@ -578,7 +586,12 @@ export const TEXTS_MEDIUM = [
   'mahkemeye sunulan dilekçeler kayıt altına alınarak ilgili dosyaya aktarıldı',
   'gün sonu itibarıyla kalemde bekleyen işlemler sistem üzerinden yeniden incelendi',
   'arşiv dosyalarının yerleştirilmesinde esas numarasına göre düzen sağlandı',
-  'zabıt katipliği işlemleri dikkat hız ve usul bilgisi gerektiren bir görev alanıdır'
+  'zabıt katipliği işlemleri dikkat hız ve usul bilgisi gerektiren bir görev alanıdır',
+  'ancak bu ilke işlenen suç dolayısıyla özel hukuk tüzel kişileri hakkında güvenlik tedbiri niteliğinde yaptırımlara hükmedilmesine engel değildir bu nedenle maddede özel hukuk tüzel kişileri hakkında hükmedilebilecek güvenlik tedbirlerinin tür ve koşulları düzenlenmiştir',
+'bunun için ilk koşul özel hukuk tüzel kişisine belirli bir faaliyette bulunabilmesine ilişkin bir kamu kurumunca verilen bir iznin varlığıdır ikinci koşul ise bu iznin sağladığı yetkinin kötüye kullanılması suretiyle tüzel kişi yararına kasıtlı bir suç işlenmesidir',
+'dikkat edilmelidir ki burada söz konusu olan suç tüzel kişi yararına işlenmiş herhangi bir suç değildir işlenen suçla verilen iznin kullanılması arasında nedensellik bağı olmalıdır',
+'örneğin uyuşturucu veya uyarıcı madde ticaretinden elde edilen gelirlerle meşruiyet görüntüsü kazandırmak için bir döviz bürosunun kullanılması halinde bu döviz bürosunu işleten özel hukuk tüzel kişisinin döviz bürosu işletmek için aldığı izin iptal edilecektir',
+'buna göre tüzel kişi yararına işlendiği belirlenen suç bakımından müsadere hükümlerindeki koşullar da gerçekleşmiş ise o suçla bağlantılı olan eşya ve maddi çıkarların müsaderesine hükmedilecektir'
 
   
 
@@ -683,7 +696,8 @@ export const TEXTS_HARD = [
   'mahkeme kalemince hazırlanan yazışmalarda tarih sayı ve konu bilgilerinin eksiksiz gösterilmesi kurumsal yazım usulünün temel gereklerindendir',
   'dosya inceleme taleplerinin kayıt altına alınması ve ilgili kişilere kontrollü erişim sağlanması bilgi güvenliği bakımından uygulamada önem taşımaktadır',
   'gerekçeli karar yazımı sırasında kısa karardaki hüküm sonucuna bağlı kalınması usul kuralları ve yargı istikrarı bakımından zorunlu kabul edilmektedir',
-  'zabıt katipliği mesleği dikkat hız sorumluluk ve hukuki işlem bilgisi gerektiren yapısı nedeniyle adalet hizmetlerinin merkezinde yer almaktadır'
+  'zabıt katipliği mesleği dikkat hız sorumluluk ve hukuki işlem bilgisi gerektiren yapısı nedeniyle adalet hizmetlerinin merkezinde yer almaktadır',
+  'yine ilaç üretmek için izin almış olan bir laboratuvarda uyuşturucu veya uyarıcı madde üretimi yapılması durumunda da aynı sonuç doğacaktır özel hukuk tüzel kişileri bakımından öngörülen ikinci güvenlik tedbiri ise müsaderedir buna göre tüzel kişi yararına işlendiği belirlenen suç bakımından müsadere hükümlerindeki koşullar da gerçekleşmiş ise o suçla bağlantılı olan eşya ve maddi çıkarların müsaderesine hükmedilecektir bu halde iyi niyetli üçüncü kişilerin hakları korunacaktır'
     
 ] as string[];
 export const buildCatalog = (): TextCatalogItem[] => {
