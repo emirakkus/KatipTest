@@ -29,7 +29,6 @@ export interface TestResult {
   usePace: boolean;
   useCustomText: boolean;
   theme: string;
-  blurIntensity: number;
   keyPresses: { key: string; correct: number; incorrect: number }[];
   errorWords: { word: string; count: number }[];
   wordErrorDetails?: { expected: string; typed: string; errorType: string; charErrors: number }[];
@@ -62,9 +61,6 @@ export interface UserSettings {
   useTargetWords: boolean;
   paceWPM: number;
   usePace: boolean;
-  blurIntensity: number;
-  blurTypedWords: boolean;
-  lineByLineBlur: boolean;
   fontSize: number;
   lineHeight: number;
   theme: 'modern' | 'retro' | 'cinematic';

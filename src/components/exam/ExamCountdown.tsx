@@ -18,7 +18,7 @@ export const ExamCountdown = memo(function ExamCountdown({
   }, [value, onComplete]);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/95 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/95">
       <div className="text-center space-y-4">
         <p className="text-slate-400 text-sm">{examTitle}</p>
         <div className="text-8xl font-black text-indigo-400 tabular-nums animate-pulse">

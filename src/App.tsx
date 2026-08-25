@@ -61,7 +61,7 @@ interface TestResult {
   correctChars: number; incorrectChars: number; totalChars: number; accuracy: number; wpm: number;
   passedBarrier: boolean; hardMode: boolean; suddenDeath: boolean; distractionMode: boolean;
   gameMode: boolean; aiTextMode: boolean; keyboardType: 'F' | 'Q'; timeLimit: number;
-  targetWords: number; paceWPM: number; usePace: boolean; useCustomText: boolean; theme: string; blurIntensity: number;
+  targetWords: number; paceWPM: number; usePace: boolean; useCustomText: boolean; theme: string;
   keyPresses: { key: string; correct: number; incorrect: number }[];
   errorWords: { word: string; count: number }[];
   wordErrorDetails?: { expected: string; typed: string; errorType: string; charErrors: number }[];
@@ -76,7 +76,6 @@ interface UserSettings {
   keyboardType: 'F' | 'Q'; ghostMode: boolean;
   timeLimit: number; customTime: number; targetWords: number; useTargetWords: boolean;
   paceWPM: number; usePace: boolean;
-  blurIntensity: number; blurTypedWords: boolean; lineByLineBlur: boolean;
   fontSize: number; lineHeight: number;
   theme: 'modern' | 'retro' | 'cinematic';
   showEffects: boolean;
@@ -196,7 +195,6 @@ export default function App() {
     keyboardType: 'F', ghostMode: false,
     timeLimit: 180, customTime: 180, targetWords: 100, useTargetWords: false,
     paceWPM: 60, usePace: false,
-    blurIntensity: 4, blurTypedWords: true, lineByLineBlur: false,
     fontSize: 19, lineHeight: 1.8,
     theme: 'modern', showEffects: true,
     customText: '', useCustomText: false,
@@ -226,10 +224,10 @@ export default function App() {
   const textContainerRef = useRef<HTMLDivElement>(null);
   const [referenceFontSize, setReferenceFontSize] = useState(settings.fontSize);
   const examPanelRef = useRef<HTMLDivElement>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
-  const gameLoopRef = useRef<NodeJS.Timeout | null>(null);
-  const ambientLoopRef = useRef<NodeJS.Timeout | null>(null);
-  const paceIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const gameLoopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const ambientLoopRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const paceIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [paceProgress, setPaceProgress] = useState(0);
   const keySessionRef = useRef<{ events: KeyPressEvent[]; lastTs: number }>({ events: [], lastTs: 0 });
   const trainerModeRef = useRef(false);
@@ -261,7 +259,6 @@ export default function App() {
         if (data.settings) setSettings(prev => ({
           ...prev,
           ...data.settings,
-          blurTypedWords: data.settings.blurTypedWords ?? true,
         }));
         setAnalytics((prev) => {
           const synced = syncLegacyStreak(prev, data.streak || 0, data.lastTestDate || null);
@@ -359,7 +356,6 @@ export default function App() {
             usePace: false,
             useCustomText: false,
             theme: 'modern',
-            blurIntensity: 4,
             keyPresses: [],
             errorWords: [],
             wordErrorDetails: []
@@ -910,7 +906,7 @@ export default function App() {
       hardMode: settings.hardMode, suddenDeath: settings.suddenDeath || suddenDeath, distractionMode: settings.distractionMode,
       gameMode: settings.gameMode, aiTextMode: settings.aiTextMode, keyboardType: settings.keyboardType,
       timeLimit: settings.timeLimit, targetWords: settings.targetWords, paceWPM: settings.paceWPM,
-      usePace: settings.usePace, useCustomText: settings.useCustomText, theme: settings.theme, blurIntensity: settings.blurIntensity,
+      usePace: settings.usePace, useCustomText: settings.useCustomText, theme: settings.theme,
       keyPresses: keyPressesArray, errorWords: errorWordsArray, wordErrorDetails,
       examWordResults: examSession ? wordResults : undefined,
       trainerSession: isTrainerSession,
@@ -1562,13 +1558,12 @@ export default function App() {
       )}
 
       {careerPromotion && (
-        <div className="fixed inset-0 z-[70] bg-black/90 flex items-center justify-center p-4" onClick={() => setCareerPromotion(null)}>
+        <div className="fixed inset-0 z-70 bg-black/90 flex items-center justify-center p-4" onClick={() => setCareerPromotion(null)}>
           <div className="text-center space-y-6">
             <div className="text-8xl">{careerPromotion.icon}</div>
             <h1 className="text-3xl font-bold text-amber-400">TERFİ ALDIN!</h1>
             <div className="text-5xl font-bold text-white">{careerPromotion.title}</div>
             <p className="text-slate-400 max-w-sm mx-auto">{careerPromotion.description}</p>
-            {careerPromotion.hardMode && <div className="text-purple-400 text-sm font-semibold">🎯 Blur Modu artık zorunlu!</div>}
             {careerPromotion.suddenDeath && <div className="text-red-400 text-sm font-semibold">💀 Sudden Death artık aktif!</div>}
             <p className="text-slate-500 text-sm animate-pulse mt-4">ekrana tıkla...</p>
           </div>
@@ -1576,7 +1571,7 @@ export default function App() {
       )}
 
       {levelUpData?.show && (
-        <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4" onClick={() => setLevelUpData(null)}>
+        <div className="fixed inset-0 z-60 bg-black/80 flex items-center justify-center p-4" onClick={() => setLevelUpData(null)}>
           <div className="text-center space-y-4 animate-bounce">
             <div className="text-7xl">🎉</div>
             <h1 className="text-4xl font-bold text-amber-400">SEVİYE ATLADIN!</h1>
@@ -1592,7 +1587,7 @@ export default function App() {
       )}
 
       {showLogoutConfirm && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setShowLogoutConfirm(false)}>
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={() => setShowLogoutConfirm(false)}>
           <div className={`${settings.darkMode ? 'bg-slate-900' : 'bg-white'} rounded-2xl max-w-sm w-full shadow-2xl overflow-hidden`} onClick={(e) => e.stopPropagation()}>
             <div className={`p-6 ${settings.darkMode ? 'border-slate-800 bg-slate-900' : 'border-gray-200 bg-white'} border-b`}>
               <div className="text-center">
@@ -1610,9 +1605,9 @@ export default function App() {
       )}
 
       {showAuthModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => { setShowAuthModal(false); setAuthStatus({ type: 'idle', message: '' }); }}>
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4" onClick={() => { setShowAuthModal(false); setAuthStatus({ type: 'idle', message: '' }); }}>
           <div className={`${settings.darkMode ? 'bg-slate-900' : 'bg-white'} rounded-3xl max-w-md w-full shadow-2xl overflow-hidden`} onClick={(e) => e.stopPropagation()}>
-            <div className={`p-6 border-b ${settings.darkMode ? 'border-slate-800 bg-gradient-to-r from-slate-900 to-slate-800' : 'border-gray-200 bg-gradient-to-r from-gray-50 to-white'}`}>
+            <div className={`p-6 border-b ${settings.darkMode ? 'border-slate-800 bg-linear-to-r from-slate-900 to-slate-800' : 'border-gray-200 bg-linear-to-r from-gray-50 to-white'}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-2xl bg-amber-500/15 flex items-center justify-center text-2xl">☁️</div>
@@ -1706,7 +1701,7 @@ export default function App() {
                   await syncToCloud(mergedProfile, history);
                   setAuthStatus({ type: 'success', message: 'Giriş başarılı. Verilerin senkronize edildi.' });
                   setTimeout(() => { setShowAuthModal(false); setAuthStatus({ type: 'idle', message: '' }); }, 700);
-                }} className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-2xl shadow-lg shadow-amber-500/20 disabled:opacity-60 disabled:cursor-not-allowed">
+                }} className="w-full py-3 bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-2xl shadow-lg shadow-amber-500/20 disabled:opacity-60 disabled:cursor-not-allowed">
                   {authStatus.type === 'loading' ? 'Bekleyin...' : (authMode === 'signin' ? 'Giriş Yap' : 'Kayıt Ol')}
                 </button>
               </div>
@@ -1716,7 +1711,7 @@ export default function App() {
       )}
 
       {showShareModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm" onClick={() => setShowShareModal(false)}>
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setShowShareModal(false)}>
           <div className={`${settings.darkMode ? 'bg-slate-800' : 'bg-white'} rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl`} onClick={(e) => e.stopPropagation()}>
             <div className="text-5xl mb-4">📱</div>
             <h2 className={`text-xl font-bold mb-2 ${theme.text}`}>Sonucunu Paylaş</h2>
@@ -1727,8 +1722,8 @@ export default function App() {
                 <div className={`text-sm ${theme.textMuted}`}>{latestResult.wpm} WPM • {latestResult.accuracy}%</div>
               </div>
             )}
-            <button onClick={generateShareImage} className="w-full px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold rounded-xl mb-3 shadow-lg shadow-purple-500/25">📸 Görsel İndir (1080x1920)</button>
-            <button onClick={generatePdfReport} className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-bold rounded-xl mb-3 shadow-lg shadow-cyan-500/25">📄 PDF Raporu İndir</button>
+            <button onClick={generateShareImage} className="w-full px-6 py-3 bg-linear-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold rounded-xl mb-3 shadow-lg shadow-purple-500/25">📸 Görsel İndir (1080x1920)</button>
+            <button onClick={generatePdfReport} className="w-full px-6 py-3 bg-linear-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-bold rounded-xl mb-3 shadow-lg shadow-cyan-500/25">📄 PDF Raporu İndir</button>
             <button onClick={() => setShowShareModal(false)} className={`w-full px-6 py-3 rounded-xl font-semibold ${settings.darkMode ? 'bg-slate-700 text-white hover:bg-slate-600' : 'bg-gray-200 text-gray-900 hover:bg-gray-300'}`}>Kapat</button>
           </div>
         </div>
@@ -1810,7 +1805,7 @@ export default function App() {
                       <button onClick={() => openAuth('signin')} className={`px-4 py-2.5 rounded-xl text-sm font-bold border transition-colors ${settings.darkMode ? 'bg-slate-800 hover:bg-slate-700 text-slate-100 border-slate-700' : 'bg-white hover:bg-gray-50 text-gray-700 border-gray-300'}`}>
                         🔐 Giriş Yap
                       </button>
-                      <button onClick={() => openAuth('signup')} className="px-4 py-2.5 rounded-xl text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-sm">
+                      <button onClick={() => openAuth('signup')} className="px-4 py-2.5 rounded-xl text-sm font-bold bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-sm">
                         ✨ Kayıt Ol
                       </button>
                     </div>
@@ -1840,7 +1835,7 @@ export default function App() {
                 <source src="https://cdn.coverr.co/videos/coverr-close-up-of-a-man-typing-on-the-keyboard-4926/1080p.mp4" type="video/mp4" />
               </video>
               <div className="absolute inset-0 bg-slate-950/78" />
-              <div className="absolute inset-0 bg-gradient-to-b from-slate-950/20 via-slate-950/50 to-slate-950/90" />
+              <div className="absolute inset-0 bg-linear-to-b from-slate-950/20 via-slate-950/50 to-slate-950/90" />
 
               <div className="relative z-10 flex flex-col items-center space-y-8 max-w-4xl">
                 <div className="flex flex-col items-center gap-5 fade-up">
@@ -1853,9 +1848,9 @@ export default function App() {
                 </div>
 
                 <div className="fade-up fade-up-1 space-y-5">
-                  <button onClick={() => setGameState('menu')} className="group relative px-14 py-4 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white font-bold text-lg rounded-2xl btn-glow transition-all transform hover:scale-[1.03] active:scale-[0.98] overflow-hidden shadow-2xl shadow-amber-500/20">
+                  <button onClick={() => setGameState('menu')} className="group relative px-14 py-4 bg-linear-to-r from-amber-400 via-amber-500 to-amber-600 text-white font-bold text-lg rounded-2xl btn-glow transition-all transform hover:scale-[1.03] active:scale-[0.98] overflow-hidden shadow-2xl shadow-amber-500/20">
                     <span className="relative z-10">Hemen Başla →</span>
-                    <div className="absolute inset-0 bg-gradient-to-t from-amber-700/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute inset-0 bg-linear-to-t from-amber-700/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   </button>
                   <div className="flex flex-wrap justify-center gap-2 text-xs md:text-sm">
                     <span className={`px-3 py-1.5 rounded-full ${settings.darkMode ? 'bg-slate-900/70 text-slate-200 border border-white/10' : 'bg-white text-gray-700 border border-gray-200'}`}>✅ İmlasız Mod</span>
@@ -1875,7 +1870,7 @@ export default function App() {
                 { icon: '📊', title: 'Akıllı Hata Analizi', desc: 'Karakter bazlı hata hesabı, zayıf kelime analizi ve detaylı performans raporları.' },
                 { icon: '🎓', title: 'Kariyer ve Sınav Modları', desc: 'Kariyer sistemi, sınav tadında mod, blur antrenmanı ve hız geliştirme akışları.' }
               ].map((f, i) => (
-                <div key={i} className={`p-8 rounded-2xl ${settings.darkMode ? 'bg-slate-800/40 border border-slate-700/30' : 'bg-white border border-gray-200 shadow-sm'} text-center hover:translate-y-[-2px] transition-transform`}>
+                <div key={i} className={`p-8 rounded-2xl ${settings.darkMode ? 'bg-slate-800/40 border border-slate-700/30' : 'bg-white border border-gray-200 shadow-sm'} text-center hover:-translate-y-0.5 transition-transform`}>
                   <div className="text-4xl mb-4">{f.icon}</div>
                   <h3 className={`text-lg font-bold mb-2 ${theme.text}`}>{f.title}</h3>
                   <p className={`text-sm ${theme.textMuted} leading-relaxed`}>{f.desc}</p>
@@ -1964,13 +1959,13 @@ export default function App() {
 
             {/* Ana Aksiyonlar */}
             <div className="fade-up fade-up-3 flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-              <button onClick={() => startGameWithTime(180, undefined, false)} className="group relative w-full sm:w-auto px-10 md:px-12 py-4 bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 text-white font-bold text-lg rounded-2xl btn-glow transition-all transform hover:scale-[1.03] active:scale-[0.98] overflow-hidden">
+              <button onClick={() => startGameWithTime(180, undefined, false)} className="group relative w-full sm:w-auto px-10 md:px-12 py-4 bg-linear-to-b from-amber-400 via-amber-500 to-amber-600 text-white font-bold text-lg rounded-2xl btn-glow transition-all transform hover:scale-[1.03] active:scale-[0.98] overflow-hidden">
                 <span className="relative z-10">⚡ Sınava Başla</span>
-                <div className="absolute inset-0 bg-gradient-to-t from-amber-700/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-linear-to-t from-amber-700/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>
-              <button onClick={() => { setExamReady(false); setGameState('exam_setup'); }} className="group relative w-full sm:w-auto px-8 md:px-10 py-4 bg-gradient-to-b from-emerald-500 via-emerald-600 to-emerald-700 text-white font-bold text-lg rounded-2xl shadow-lg shadow-emerald-500/25 transition-all transform hover:scale-[1.03] active:scale-[0.98] overflow-hidden">
+              <button onClick={() => { setExamReady(false); setGameState('exam_setup'); }} className="group relative w-full sm:w-auto px-8 md:px-10 py-4 bg-linear-to-b from-emerald-500 via-emerald-600 to-emerald-700 text-white font-bold text-lg rounded-2xl shadow-lg shadow-emerald-500/25 transition-all transform hover:scale-[1.03] active:scale-[0.98] overflow-hidden">
                 <span className="relative z-10">🎓 Sınav Tadında</span>
-                <div className="absolute inset-0 bg-gradient-to-t from-emerald-800/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-linear-to-t from-emerald-800/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
               </button>
             </div>
 
@@ -2029,7 +2024,7 @@ export default function App() {
                     </button>
                   ))}
                 </div>
-                <button onClick={() => { setShowCustomTime(false); startGameWithTime(customMinutes * 60, undefined, false); }} className="w-full py-3 bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-bold rounded-xl transition-all">
+                <button onClick={() => { setShowCustomTime(false); startGameWithTime(customMinutes * 60, undefined, false); }} className="w-full py-3 bg-linear-to-r from-cyan-500 to-cyan-600 hover:from-cyan-600 hover:to-cyan-700 text-white font-bold rounded-xl transition-all">
                   {customMinutes} Dakika ile Başla
                 </button>
               </div>
@@ -2072,7 +2067,7 @@ export default function App() {
                           <span className={`font-semibold ${wordPct >= 100 ? 'text-green-400' : 'text-amber-400'}`}>{Math.round(wordPct)}%</span>
                         </div>
                         <div className={`w-full ${settings.darkMode ? 'bg-slate-700' : 'bg-gray-200'} rounded-full h-2 overflow-hidden`}>
-                          <div className={`h-full transition-all ${wordPct >= 100 ? 'bg-green-500' : 'bg-gradient-to-r from-purple-500 to-pink-500'}`} style={{ width: `${wordPct}%` }} />
+                          <div className={`h-full transition-all ${wordPct >= 100 ? 'bg-green-500' : 'bg-linear-to-r from-purple-500 to-pink-500'}`} style={{ width: `${wordPct}%` }} />
                         </div>
                       </div>
                       <div>
@@ -2081,7 +2076,7 @@ export default function App() {
                           <span className={`font-semibold ${charPct >= 100 ? 'text-green-400' : 'text-blue-400'}`}>{Math.round(charPct)}%</span>
                         </div>
                         <div className={`w-full ${settings.darkMode ? 'bg-slate-700' : 'bg-gray-200'} rounded-full h-2 overflow-hidden`}>
-                          <div className={`h-full transition-all ${charPct >= 100 ? 'bg-green-500' : 'bg-gradient-to-r from-blue-500 to-cyan-500'}`} style={{ width: `${charPct}%` }} />
+                          <div className={`h-full transition-all ${charPct >= 100 ? 'bg-green-500' : 'bg-linear-to-r from-blue-500 to-cyan-500'}`} style={{ width: `${charPct}%` }} />
                         </div>
                       </div>
                     </div>
@@ -2267,11 +2262,11 @@ export default function App() {
                     role="textbox"
                     aria-label="Yazım alanı"
                     onClick={() => inputRef.current?.focus()}
-                    className={`relative min-h-[4rem] max-h-[5rem] overflow-hidden rounded-xl ${
+                    className={`relative min-h-16 max-h-20 overflow-hidden rounded-xl ${
                       settings.darkMode ? 'bg-slate-950' : 'bg-gray-50'
                     }`}
                   >
-                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 px-3 py-2 min-h-[4rem]">
+                    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1 px-3 py-2 min-h-16">
                       {completedWords.map((entry, index) => {
                         const display = entry.skipped && !entry.word ? '—' : entry.word || '—';
                         return (
@@ -2282,7 +2277,6 @@ export default function App() {
                             }`}
                             style={{
                               fontSize: `${referenceFontSize}px`,
-                              ...(display !== '—' ? { filter: `blur(${settings.blurIntensity}px)` } : {}),
                             }}
                           >
                             {display}
@@ -2302,9 +2296,6 @@ export default function App() {
                           }`}
                           style={{
                             fontSize: `${referenceFontSize}px`,
-                            ...(currentWordInput.length > 0
-                              ? { filter: `blur(${settings.blurIntensity}px)` }
-                              : {}),
                           }}
                           placeholder={completedWords.length === 0 ? 'Yazmaya başlayın…' : ''}
                           autoFocus
@@ -2369,7 +2360,7 @@ export default function App() {
                   <span className={theme.textMuted}>{Math.round(paceProgress)}%</span>
                 </div>
                 <div className={`w-full ${settings.darkMode ? 'bg-slate-700' : 'bg-gray-200'} rounded-full h-3 overflow-hidden`}>
-                  <div className="h-full bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-1000" style={{ width: `${paceProgress}%` }} />
+                  <div className="h-full bg-linear-to-r from-purple-500 to-pink-500 transition-all duration-1000" style={{ width: `${paceProgress}%` }} />
                 </div>
               </div>
             )}
@@ -2407,7 +2398,7 @@ export default function App() {
                     </button>
                   )}
                 </div>
-                <div ref={textContainerRef} className={`font-mono px-3 py-3 min-h-[11rem] max-h-[calc(100vh-11rem)] sm:max-h-[calc(100vh-10rem)] leading-relaxed tracking-wide whitespace-normal overflow-y-auto ${settings.darkMode ? 'text-slate-200' : 'text-gray-800'}`} style={{ fontSize: `${gameState === 'playing' ? referenceFontSize : getReferenceFontPx(settings.fontSize)}px`, lineHeight: REFERENCE_LINE_HEIGHT }}>
+                <div ref={textContainerRef} className={`font-mono px-3 py-3 min-h-44 max-h-[calc(100vh-11rem)] sm:max-h-[calc(100vh-10rem)] leading-relaxed tracking-wide whitespace-normal overflow-y-auto ${settings.darkMode ? 'text-slate-200' : 'text-gray-800'}`} style={{ fontSize: `${gameState === 'playing' ? referenceFontSize : getReferenceFontPx(settings.fontSize)}px`, lineHeight: REFERENCE_LINE_HEIGHT }}>
                   {currentText}
                   {particles.map(p => (
                     <div key={p.id} className="fixed w-2 h-2 rounded-full animate-ping" style={{ left: p.x, top: p.y, backgroundColor: p.color }} />
@@ -2431,7 +2422,6 @@ export default function App() {
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                     YAZIM ALANI
                   </div>
-                  {(settings.blurTypedWords || settings.hardMode) && <div className="flex items-center text-purple-400 text-[11px]">👁️ Bulanık yazım ({settings.blurIntensity}px)</div>}
                   {capsLockOn && <div className="flex items-center text-red-400 font-semibold text-[11px]">⚠️ CAPSLOCK</div>}
                   {examMode && !dedicatedExamActive && <div className="flex items-center text-emerald-400 font-semibold text-[11px]">🎓 SINAV</div>}
                   {dedicatedExamActive && <div className="flex items-center text-indigo-400 font-semibold text-[11px]">📋 SINAV MODU</div>}
@@ -2441,9 +2431,9 @@ export default function App() {
                   role="textbox"
                   aria-label="Yazım alanı"
                   onClick={() => inputRef.current?.focus()}
-                  className={`relative min-h-[4.25rem] max-h-[8.5rem] overflow-y-auto rounded-lg transition-shadow focus-within:ring-2 focus-within:ring-amber-400/80 focus-within:border-amber-400 ${settings.darkMode ? 'bg-slate-950 border-slate-600' : 'bg-gray-50 border-gray-300'} border-2`}
+                  className={`relative min-h-17 max-h-34 overflow-y-auto rounded-lg transition-shadow focus-within:ring-2 focus-within:ring-amber-400/80 focus-within:border-amber-400 ${settings.darkMode ? 'bg-slate-950 border-slate-600' : 'bg-gray-50 border-gray-300'} border-2`}
                 >
-                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1.5 px-3 py-2 min-h-[4.25rem]">
+                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1.5 px-3 py-2 min-h-17">
                     {completedWords.map((entry, index) => {
                       const display = entry.skipped && !entry.word ? '—' : entry.word || '—';
                       const tokenClass = entry.skipped
@@ -2451,7 +2441,6 @@ export default function App() {
                         : entry.isCorrect
                         ? (settings.darkMode ? 'text-sky-300/50' : 'text-sky-600/55')
                         : (settings.darkMode ? 'text-red-400/55' : 'text-red-500/60');
-                      const blurTyped = settings.blurTypedWords || settings.hardMode;
                       const wordFontSize = gameState === 'playing' ? referenceFontSize : getReferenceFontPx(settings.fontSize);
                       return (
                         <span
@@ -2459,7 +2448,6 @@ export default function App() {
                           className={`font-mono leading-snug select-none opacity-50 scale-[0.98] transition-[opacity,color,filter] duration-200 ${tokenClass}`}
                           style={{
                             fontSize: `${wordFontSize}px`,
-                            ...(blurTyped && display !== '—' ? { filter: `blur(${settings.blurIntensity}px)` } : {}),
                           }}
                         >
                           {display}
@@ -2477,9 +2465,6 @@ export default function App() {
                         className={`font-mono leading-snug bg-transparent outline-none border-b-2 border-amber-400/90 max-w-full min-w-[3ch] ${settings.darkMode ? 'text-white caret-amber-400' : 'text-gray-900 caret-amber-600'} ${completedWords.length === 0 ? (settings.darkMode ? 'placeholder:text-slate-500' : 'placeholder:text-gray-400') : ''}`}
                         style={{
                           fontSize: `${gameState === 'playing' ? referenceFontSize : getReferenceFontPx(settings.fontSize)}px`,
-                          ...((settings.blurTypedWords || settings.hardMode) && currentWordInput.length > 0
-                            ? { filter: `blur(${settings.blurIntensity}px)` }
-                            : {}),
                         }}
                         placeholder={completedWords.length === 0 ? 'Kelimeyi buraya yazın…' : ''}
                         autoFocus
@@ -2490,7 +2475,6 @@ export default function App() {
                       />
                     </span>
                   </div>
-                  {(settings.blurTypedWords || settings.hardMode) && (completedWords.length > 0 || currentWordInput.length > 0) && <div className="absolute bottom-2 right-4 text-xs text-purple-400/80 pointer-events-none"></div>}
                 </div>
                 {!settings.zenMode && <div className={`mt-1 text-[11px] ${theme.textMuted} flex flex-wrap items-center gap-2`}>
                   <span className="flex items-center"><kbd className={`px-1.5 py-0.5 rounded font-mono text-[10px] mr-1 ${settings.darkMode ? 'bg-slate-700 text-slate-300' : 'bg-gray-200 text-gray-700'}`}>Space</kbd>Tamamla</span>
@@ -2907,11 +2891,11 @@ export default function App() {
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-2 text-sm">
                           <div>
                             <div className={`text-xs ${theme.textMuted}`}>Doğrusu</div>
-                            <div className="text-green-400 font-semibold break-words">{item.expected}</div>
+                            <div className="text-green-400 font-semibold wrap-break-word">{item.expected}</div>
                           </div>
                           <div>
                             <div className={`text-xs ${theme.textMuted}`}>Senin yazdığın</div>
-                            <div className="text-red-400 font-semibold break-words">{item.typed}</div>
+                            <div className="text-red-400 font-semibold wrap-break-word">{item.typed}</div>
                           </div>
                           <div>
                             <div className={`text-xs ${theme.textMuted}`}>Hata tipi</div>
@@ -2928,7 +2912,7 @@ export default function App() {
                 </div>
               )}
               {/* XP Kazanım */}
-              <div className={`mb-6 p-4 rounded-xl ${settings.darkMode ? 'bg-gradient-to-r from-amber-900/30 to-yellow-900/30 border-amber-500/20' : 'bg-gradient-to-r from-amber-50 to-yellow-50 border-amber-200'} border`}>
+              <div className={`mb-6 p-4 rounded-xl ${settings.darkMode ? 'bg-linear-to-r from-amber-900/30 to-yellow-900/30 border-amber-500/20' : 'bg-linear-to-r from-amber-50 to-yellow-50 border-amber-200'} border`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="text-3xl">⭐</div>
@@ -2943,15 +2927,15 @@ export default function App() {
                   </div>
                 </div>
                 <div className={`w-full ${settings.darkMode ? 'bg-slate-700' : 'bg-gray-200'} rounded-full h-2 mt-3 overflow-hidden`}>
-                  <div className="h-full bg-gradient-to-r from-amber-400 to-yellow-500 transition-all" style={{ width: `${((profile.xp || 0) % 200) / 200 * 100}%` }} />
+                  <div className="h-full bg-linear-to-r from-amber-400 to-yellow-500 transition-all" style={{ width: `${((profile.xp || 0) % 200) / 200 * 100}%` }} />
                 </div>
               </div>
 
               <div className="flex flex-wrap justify-center gap-3">
-                <button onClick={() => startGameWithTime(180, undefined, false)} className="px-8 py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl shadow-lg shadow-amber-500/25 transition-all transform hover:scale-105">🔄 Yeni Sınav</button>
-                <button onClick={() => setShowShareModal(true)} className="px-8 py-3 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg transition-all">📱 Paylaş</button>
-                <button onClick={generatePdfReport} className="px-8 py-3 bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-bold rounded-xl shadow-lg transition-all">📄 PDF Raporu</button>
-                <button onClick={() => setGameState('roadmap')} className="px-8 py-3 bg-gradient-to-r from-indigo-500 to-sky-600 hover:from-indigo-600 hover:to-sky-700 text-white font-bold rounded-xl shadow-lg transition-all">🗺️ Yol Haritası</button>
+                <button onClick={() => startGameWithTime(180, undefined, false)} className="px-8 py-3 bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl shadow-lg shadow-amber-500/25 transition-all transform hover:scale-105">🔄 Yeni Sınav</button>
+                <button onClick={() => setShowShareModal(true)} className="px-8 py-3 bg-linear-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold rounded-xl shadow-lg transition-all">📱 Paylaş</button>
+                <button onClick={generatePdfReport} className="px-8 py-3 bg-linear-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-bold rounded-xl shadow-lg transition-all">📄 PDF Raporu</button>
+                <button onClick={() => setGameState('roadmap')} className="px-8 py-3 bg-linear-to-r from-indigo-500 to-sky-600 hover:from-indigo-600 hover:to-sky-700 text-white font-bold rounded-xl shadow-lg transition-all">🗺️ Yol Haritası</button>
                 <button onClick={() => { setExamMode(false); setGameState('menu'); }} className={`px-8 py-3 font-semibold rounded-xl transition-colors ${settings.darkMode ? 'bg-slate-700 hover:bg-slate-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-900'}`}>🏠 Ana Menü</button>
               </div>
             </div>
@@ -2981,7 +2965,7 @@ export default function App() {
           <div className="space-y-6 max-w-4xl mx-auto">
             {/* Profil Hero */}
             <div className={`rounded-2xl overflow-hidden ${theme.border} border`}>
-              <div className={`h-24 ${settings.darkMode ? 'bg-gradient-to-r from-amber-900/40 via-purple-900/40 to-blue-900/40' : 'bg-gradient-to-r from-amber-100 via-purple-100 to-blue-100'}`} />
+              <div className={`h-24 ${settings.darkMode ? 'bg-linear-to-r from-amber-900/40 via-purple-900/40 to-blue-900/40' : 'bg-linear-to-r from-amber-100 via-purple-100 to-blue-100'}`} />
               <div className={`${theme.cardBg} px-6 pb-6`}>
                 <div className="flex flex-col md:flex-row items-center md:items-end gap-4 -mt-10">
                   {/* Avatar Seçici */}
@@ -3052,7 +3036,7 @@ export default function App() {
                     setProfileNameSaveStatus('saved');
                     setTimeout(() => setProfileNameSaveStatus('idle'), 2000);
                   }}
-                  className="px-5 py-3 rounded-xl text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white disabled:opacity-60"
+                  className="px-5 py-3 rounded-xl text-sm font-bold bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white disabled:opacity-60"
                 >
                   {profileNameSaveStatus === 'saving' ? 'Kaydediliyor...' : 'Kaydet'}
                 </button>
@@ -3223,7 +3207,7 @@ export default function App() {
               </div>
             </div>
 
-            <button onClick={() => setGameState('menu')} className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl">← Ana Menüye Dön</button>
+            <button onClick={() => setGameState('menu')} className="w-full py-3 bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl">← Ana Menüye Dön</button>
           </div>
         )}
 
@@ -3372,7 +3356,7 @@ export default function App() {
                       </div>
                       {done && <div className="text-green-400 text-sm font-bold">✓</div>}
                       {active && (
-                        <button onClick={() => { setSettings(st => ({ ...st, hardMode: s.hardMode, suddenDeath: s.suddenDeath })); setTimeout(() => startGameWithTime(180, undefined, false), 50); }} className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold text-sm rounded-lg shadow-lg shadow-purple-500/25 shrink-0">
+                        <button onClick={() => { setSettings(st => ({ ...st, hardMode: s.hardMode, suddenDeath: s.suddenDeath })); setTimeout(() => startGameWithTime(180, undefined, false), 50); }} className="px-4 py-2 bg-linear-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold text-sm rounded-lg shadow-lg shadow-purple-500/25 shrink-0">
                           Sınava Gir
                         </button>
                       )}
@@ -3407,7 +3391,7 @@ export default function App() {
               })}
             </div>
 
-            <button onClick={() => setGameState('menu')} className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl">← Ana Menüye Dön</button>
+            <button onClick={() => setGameState('menu')} className="w-full py-3 bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl">← Ana Menüye Dön</button>
           </div>
         )}
 
@@ -3462,7 +3446,7 @@ export default function App() {
               </div>
             </div>
 
-            <button onClick={() => setGameState('landing')} className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl">← Ana Sayfaya Dön</button>
+            <button onClick={() => setGameState('landing')} className="w-full py-3 bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl">← Ana Sayfaya Dön</button>
           </div>
         )}
 
@@ -3581,7 +3565,7 @@ export default function App() {
                 </div>
                 {/* Seviye barı */}
                 <div className={`w-full ${settings.darkMode ? 'bg-slate-700' : 'bg-gray-200'} rounded-full h-3 overflow-hidden`}>
-                  <div className="h-full bg-gradient-to-r from-amber-500 to-amber-600 transition-all" style={{ width: `${Math.min(100, (bestWords / 120) * 100)}%` }} />
+                  <div className="h-full bg-linear-to-r from-amber-500 to-amber-600 transition-all" style={{ width: `${Math.min(100, (bestWords / 120) * 100)}%` }} />
                 </div>
                 <div className="flex justify-between text-xs mt-1">
                   <span className={theme.textMuted}>0</span>
@@ -3692,7 +3676,7 @@ export default function App() {
                   <span className={`text-sm font-bold text-amber-400`}>{totalXP} XP</span>
                 </div>
                 <div className={`w-full ${settings.darkMode ? 'bg-slate-700' : 'bg-gray-200'} rounded-full h-3 overflow-hidden`}>
-                  <div className="h-full bg-gradient-to-r from-amber-400 to-amber-600 transition-all" style={{ width: `${(xpInLevel / 200) * 100}%` }} />
+                  <div className="h-full bg-linear-to-r from-amber-400 to-amber-600 transition-all" style={{ width: `${(xpInLevel / 200) * 100}%` }} />
                 </div>
                 <div className={`text-xs mt-1 ${theme.textMuted}`}>{xpInLevel} / 200 XP → Seviye {xpLevel + 1}</div>
               </div>
@@ -3783,7 +3767,7 @@ export default function App() {
                 </div>
               </div>
 
-              <button onClick={() => setGameState('menu')} className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl">← Ana Menüye Dön</button>
+              <button onClick={() => setGameState('menu')} className="w-full py-3 bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl">← Ana Menüye Dön</button>
             </div>
           );
         })()}
@@ -3861,11 +3845,11 @@ export default function App() {
                     <div className={`text-sm p-3 rounded-xl ${contactStatus.type === 'success' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : contactStatus.type === 'error' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}`}>{contactStatus.message}</div>
                   )}
                   <p className={`text-xs ${theme.textMuted}`}>* DB bağlantısı yoksa mesajın yerel olarak kaydedilir ve daha sonra incelenebilir.</p>
-                  <button type="submit" className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl shadow-lg shadow-amber-500/20">Mesaj Gönder</button>
+                  <button type="submit" className="w-full py-3 bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl shadow-lg shadow-amber-500/20">Mesaj Gönder</button>
                 </form>
               </div>
             </div>
-            <button onClick={() => setGameState('landing')} className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl">← Ana Sayfaya Dön</button>
+            <button onClick={() => setGameState('landing')} className="w-full py-3 bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl">← Ana Sayfaya Dön</button>
           </div>
         )}
 
@@ -3878,7 +3862,7 @@ export default function App() {
             {/* Hero */}
             <div className="relative rounded-2xl overflow-hidden">
               <img src="/images/blog-hero.png" alt="Blog" className="w-full h-48 object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end p-6">
+              <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/30 to-transparent flex items-end p-6">
                 <div>
                   <h2 className="text-3xl font-bold text-white">Rehber & İpuçları</h2>
                   <p className="text-slate-300 text-sm mt-1">Sınava hazırlık için bilmen gereken her şey</p>
@@ -3902,7 +3886,7 @@ export default function App() {
 
             {/* Güncel Haberler */}
             <div className={`rounded-xl overflow-hidden ${theme.border} border`}>
-              <div className={`px-6 py-4 ${settings.darkMode ? 'bg-gradient-to-r from-blue-900/50 to-indigo-900/50' : 'bg-gradient-to-r from-blue-50 to-indigo-50'} flex items-center justify-between`}>
+              <div className={`px-6 py-4 ${settings.darkMode ? 'bg-linear-to-r from-blue-900/50 to-indigo-900/50' : 'bg-linear-to-r from-blue-50 to-indigo-50'} flex items-center justify-between`}>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center text-xl">📰</div>
                   <div>
@@ -3982,7 +3966,7 @@ export default function App() {
               ))}
             </div>
 
-            <button onClick={() => setGameState('menu')} className="w-full py-3 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl">← Ana Menüye Dön</button>
+            <button onClick={() => setGameState('menu')} className="w-full py-3 bg-linear-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-bold rounded-xl">← Ana Menüye Dön</button>
           </div>
         )}
       </main>
@@ -4035,7 +4019,7 @@ export default function App() {
       )}
 
       {showSettings && (
-        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 overflow-y-auto backdrop-blur-sm" onClick={() => setShowSettings(false)} onKeyDown={(e) => { if (e.key === 'Escape') setShowSettings(false); }} tabIndex={0}>
+        <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 overflow-y-auto" onClick={() => setShowSettings(false)} onKeyDown={(e) => { if (e.key === 'Escape') setShowSettings(false); }} tabIndex={0}>
           <div className={`${settings.darkMode ? 'bg-slate-900' : 'bg-white'} rounded-2xl max-w-2xl w-full my-8 shadow-2xl overflow-hidden`} onClick={(e) => e.stopPropagation()}>
             {/* Header */}
             <div className={`px-6 py-4 ${settings.darkMode ? 'bg-slate-800' : 'bg-gray-50'} border-b ${settings.darkMode ? 'border-slate-700' : 'border-gray-200'} flex items-center justify-between`}>
@@ -4064,31 +4048,12 @@ export default function App() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className={`text-sm ${theme.text}`}>👁️ Yazım alanını bulanıklaştır</div>
-                      <div className={`text-xs ${theme.textMuted}`}>Yazdığın kelimeler dikkat dağıtmaz</div>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" checked={settings.blurTypedWords} onChange={(e) => setSettings(s => ({ ...s, blurTypedWords: e.target.checked }))} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
-                    </label>
-                  </div>
-                  {(settings.blurTypedWords || settings.hardMode) && (
-                    <div>
-                      <div className="flex justify-between text-xs mb-2"><span className={theme.textMuted}>Bulanıklık</span><span className={theme.text}>{settings.blurIntensity}px</span></div>
-                      <div className={`relative w-full h-2 rounded-full ${settings.darkMode ? 'bg-slate-600' : 'bg-gray-300'}`}>
-                        <div className="absolute h-full bg-purple-500 rounded-full" style={{ width: `${((settings.blurIntensity - 1) / 9) * 100}%` }} />
-                        <input type="range" min="1" max="10" value={settings.blurIntensity} onChange={(e) => setSettings(s => ({ ...s, blurIntensity: parseInt(e.target.value) }))} className="absolute inset-0 w-full opacity-0 cursor-pointer" />
-                      </div>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <div>
                       <div className={`text-sm ${theme.text}`}>🎯 Zor Mod</div>
                       <div className={`text-xs ${theme.textMuted}`}>Ekstra XP bonusu (+50%)</div>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" checked={settings.hardMode} onChange={(e) => setSettings(s => ({ ...s, hardMode: e.target.checked }))} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                      <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
                     </label>
                   </div>
                   <div>
@@ -4116,14 +4081,14 @@ export default function App() {
                     <div className={`text-sm ${theme.text}`}>🤖 AI Metin Üretici</div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" checked={settings.aiTextMode} onChange={(e) => setSettings(s => ({ ...s, aiTextMode: e.target.checked, useCustomText: false }))} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
+                      <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
                     </label>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className={`text-sm ${theme.text}`}>📝 Özel Metin</div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" checked={settings.useCustomText} onChange={(e) => setSettings(s => ({ ...s, useCustomText: e.target.checked, aiTextMode: false }))} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                      <div className="w-11 h-6 bg-slate-600 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
                     </label>
                   </div>
                   {settings.useCustomText && (
@@ -4143,7 +4108,7 @@ export default function App() {
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" checked={settings.distractionMode} onChange={(e) => setSettings(s => ({ ...s, distractionMode: e.target.checked }))} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                      <div className="w-11 h-6 bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
                     </label>
                   </div>
                   <div className="flex items-center justify-between">
@@ -4153,7 +4118,7 @@ export default function App() {
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" checked={settings.gameMode} onChange={(e) => setSettings(s => ({ ...s, gameMode: e.target.checked }))} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                      <div className="w-11 h-6 bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
                     </label>
                   </div>
                   <div className="flex items-center justify-between">
@@ -4163,7 +4128,7 @@ export default function App() {
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" checked={settings.suddenDeath} onChange={(e) => setSettings(s => ({ ...s, suddenDeath: e.target.checked }))} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
+                      <div className="w-11 h-6 bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500"></div>
                     </label>
                   </div>
                 </div>
@@ -4177,28 +4142,28 @@ export default function App() {
                     <div className={`text-sm ${theme.text}`}>🌙 Karanlık Mod</div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" checked={settings.darkMode} onChange={(e) => setSettings(s => ({ ...s, darkMode: e.target.checked }))} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                      <div className="w-11 h-6 bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
                     </label>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className={`text-sm ${theme.text}`}>🔊 Sesli Geri Bildirim</div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" checked={settings.soundEnabled} onChange={(e) => setSettings(s => ({ ...s, soundEnabled: e.target.checked }))} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                      <div className="w-11 h-6 bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
                     </label>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className={`text-sm ${theme.text}`}>🧘 Zen Modu</div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" checked={settings.zenMode} onChange={(e) => setSettings(s => ({ ...s, zenMode: e.target.checked }))} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                      <div className="w-11 h-6 bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
                     </label>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className={`text-sm ${theme.text}`}>✨ Görsel Efektler</div>
                     <label className="relative inline-flex items-center cursor-pointer">
                       <input type="checkbox" checked={settings.showEffects} onChange={(e) => setSettings(s => ({ ...s, showEffects: e.target.checked }))} className="sr-only peer" />
-                      <div className="w-11 h-6 bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
+                      <div className="w-11 h-6 bg-slate-600 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
                     </label>
                   </div>
                 </div>
